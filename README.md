@@ -76,6 +76,10 @@ npm start
 
 Escaneie o **QR code** que aparece no terminal com o **Expo Go** (Android) ou com a **Câmera** do iPhone.
 
+> **Importante:** use celular ou emulador. O app não roda no navegador (Expo Web) — a tela exibe aviso para abrir no Expo Go, conforme exigência do sprint.
+
+**Primeiro login:** se ainda não houver pet salvo, o fluxo abre a rota `CadastroPet`; depois de salvar, segue para as abas.
+
 ---
 
 ## Navegação
@@ -87,9 +91,9 @@ O app possui **mais de 5 rotas** navegáveis, com **React Navigation**.
 | Rota | Descrição |
 |:-----|:----------|
 | `Login` | Entrada do tutor (formulário com validação) |
-| `CadastroPet` | Cadastro do pet + foto opcional |
+| `CadastroPet` | Primeiro acesso sem pet — cadastro obrigatório antes das abas |
 | `Orientacao` | Orientação após o check-in |
-| `MainTabs` | Abas principais |
+| `MainTabs` | Abas principais (após login com pet já cadastrado) |
 
 ### Bottom Tabs (abas)
 
