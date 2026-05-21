@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SOLIN — QR Expo Go</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: #f5f7f6;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      max-width: 420px;
+      width: 100%;
+      background: #fff;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(46, 125, 107, 0.15);
+    }
+    .topo {
+      background: #2e7d6b;
+      color: #fff;
+      padding: 28px 24px;
+      text-align: center;
+    }
+    .marca { font-size: 36px; font-weight: 800; letter-spacing: 3px; }
+    .slogan { margin-top: 8px; font-size: 14px; opacity: 0.92; }
+    .corpo { padding: 24px; text-align: center; }
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #2e7d6b;
+      background: #e8f6f3;
+      padding: 6px 12px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+    .dica {
+      font-size: 14px;
+      color: #5a6b65;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .qr-box {
+      background: #e8f6f3;
+      border-radius: 16px;
+      padding: 20px;
+      display: inline-block;
+      margin-bottom: 16px;
+    }
+    #qrcode canvas, #qrcode img { display: block; margin: 0 auto; }
+    .status {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .status.ok { color: #2e7d6b; }
+    .status.wait { color: #e76f51; }
+    .url {
+      font-size: 11px;
+      color: #8a9a94;
+      word-break: break-all;
+      margin-bottom: 16px;
+      padding: 0 8px;
+    }
+    .btn {
+      display: inline-block;
+      background: #2e7d6b;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 15px;
+      padding: 14px 28px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      max-width: 280px;
+    }
+    .btn:hover { background: #256b5c; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .rodape {
+      text-align: center;
+      font-size: 12px;
+      color: #8a9a94;
+      padding: 0 24px 24px;
+    }
+    .aviso {
+      margin-top: 16px;
+      font-size: 12px;
+      color: #8a9a94;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="topo">
+      <div class="marca">SOLIN</div>
+      <div class="slogan">O cuidado que protege o seu pet</div>
+    </div>
+    <div class="corpo">
+      <div class="badge">Preview · Expo Go</div>
+      <p class="dica">
+        Escaneie com a <strong>Câmera</strong> (iPhone) ou <strong>Expo Go</strong> (Android).
+        Deixe <code>npm start</code> rodando no PC antes.
+      </p>
+      <p id="status" class="status wait">Aguardando URL do Expo...</p>
+      <div class="qr-box">
+        <div id="qrcode"></div>
+      </div>
+      <p id="urlTxt" class="url"></p>
+      <a id="btnAbrir" class="btn" href="#">Abrir no Expo Go</a>
+      <p class="aviso">
+        Esta página só mostra o QR. O app roda no celular — não no navegador.
+      </p>
+    </div>
+    <div class="rodape">Challenge FIAP 2026 · Clyvo Vet</div>
+  </div>
+
+  <script>
+    let qrInstancia = null;
+    let urlAtual = '';
+
+    function renderizarQr(url) {
+      const el = document.getElementById('qrcode');
+      el.innerHTML = '';
+      if (!url) return;
+      qrInstancia = new QRCode(el, {
+        text: url,
+        width: 220,
+        height: 220,
+        colorDark: '#2e7d6b',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M,
+      });
+    }
+
+    function atualizarTela(dados) {
+      const status = document.getElementById('status');
+      const urlTxt = document.getElementById('urlTxt');
+      const btn = document.getElementById('btnAbrir');
+
+      if (!dados.url) {
+        status.textContent = 'Inicie o Expo no PC (npm start)';
+        status.className = 'status wait';
+        return;
+      }
+
+      if (dados.url !== urlAtual) {
+        urlAtual = dados.url;
+        renderizarQr(urlAtual);
+      }
+
+      urlTxt.textContent = urlAtual;
+      btn.href = urlAtual;
+
+      if (dados.online) {
+        status.textContent =
+          dados.modo === 'tunnel' ? 'Tunnel online — pode escanear' : 'Expo online (rede local)';
+        status.className = 'status ok';
+      } else {
+        status.textContent =
+          dados.modo === 'tunnel'
+            ? 'Tunnel provavel — escaneie se npm start --tunnel estiver ativo'
+            : 'Aguardando Expo na porta 8081...';
+        status.className = 'status wait';
+      }
+    }
+
+    async function buscarUrl() {
+      try {
+        const res = await fetch('/api/url');
+        const dados = await res.json();
+        atualizarTela(dados);
+      } catch (e) {
+        document.getElementById('status').textContent = 'Servidor QR offline — rode node servidor-ios.js';
+      }
+    }
+
+    buscarUrl();
+    setInterval(buscarUrl, 2000);
+  </script>
+</body>
+</html>
