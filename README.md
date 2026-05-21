@@ -80,11 +80,14 @@ Escaneie o **QR code** que aparece no terminal com o **Expo Go** (Android) ou co
 
 ### Abrir no celular (Expo Go)
 
-1. Terminal: `npm run start:tunnel` — espere **Tunnel ready**
-2. Escaneie o **QR do próprio terminal** (recomendado)
+**Se deu ERR_NGROK_3200:** o tunnel caiu. Use rede local (mais estável):
 
-Opcional — QR na tela do PC: `iniciar-tudo.bat` ou `npm run qr` → http://localhost:5500  
-(Só aparece QR quando o Expo estiver rodando.)
+1. Duplo clique em **`corrigir-expo.bat`** (só na primeira vez ou se der erro)
+2. Duplo clique em **`iniciar.bat`** (ou `npm start`)
+3. PC e iPhone na **mesma Wi-Fi**
+4. Escaneie o **QR no terminal** com a Câmera do iPhone
+
+Tunnel (`npm run start:tunnel`) só se a rede local não funcionar.
 
 **Primeiro login:** se ainda não houver pet salvo, o fluxo abre a rota `CadastroPet`; depois de salvar, segue para as abas.
 

@@ -1,6 +1,6 @@
 /**
- * Pagina do QR: npm run qr  |  abrir-qr.bat
- * So mostra QR quando o Expo esta rodando (evita ERR_NGROK_3200).
+ * QR na tela do PC — npm run qr (opcional)
+ * O QR so aparece com Expo rodando (npm start).
  */
 
 const http = require('http');
@@ -37,14 +37,6 @@ function portaAberta(porta) {
   });
 }
 
-function limparUrl(url) {
-  if (!url) return null;
-  return url
-    .replace(/\.exp\.direct:80/gi, '.exp.direct')
-    .replace(/\.exp\.direct:443/gi, '.exp.direct')
-    .trim();
-}
-
 function urlDoMetro() {
   return new Promise((resolve) => {
     const req = http.request(
@@ -57,11 +49,7 @@ function urlDoMetro() {
       },
       (res) => {
         const loc = res.headers.location;
-        if (loc?.startsWith('exp://')) {
-          resolve(limparUrl(loc));
-          return;
-        }
-        resolve(null);
+        resolve(loc?.startsWith('exp://') ? loc : null);
       }
     );
     req.on('error', () => resolve(null));
@@ -80,32 +68,29 @@ async function obterUrlExpo() {
     return {
       url: null,
       online: false,
-      mensagem: 'Expo parado. Terminal: npm run start:tunnel',
+      mensagem: 'Rode npm start e espere o QR no terminal',
     };
   }
 
-  const url = await urlDoMetro();
-  if (url) {
-    return { url, online: true };
+  const doMetro = await urlDoMetro();
+  if (doMetro) {
+    return { url: doMetro, online: true };
   }
 
   const ip = ipLocal();
   if (ip) {
-    return { url: `exp://${ip}:${EXPO_PORT}`, online: true };
+    return {
+      url: `exp://${ip}:${EXPO_PORT}`,
+      online: true,
+      mensagem: 'Escaneie (PC e celular na mesma Wi-Fi)',
+    };
   }
 
   return {
     url: null,
     online: true,
-    mensagem: 'Espere "Tunnel ready" no terminal do Expo',
+    mensagem: 'Use o QR do terminal do Expo',
   };
-}
-
-function servirHtml(res, dados) {
-  let html = fs.readFileSync(path.join(ROOT, 'expo-qr.html'), 'utf8');
-  html = html.replace('/*__EXPO_BOOT__*/', JSON.stringify(dados));
-  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-  res.end(html);
 }
 
 http
@@ -119,17 +104,13 @@ http
       return;
     }
 
-    if (rota === '/' || rota === '/expo-qr.html') {
-      servirHtml(res, dados);
-      return;
-    }
-
-    res.writeHead(404);
-    res.end();
+    let html = fs.readFileSync(path.join(ROOT, 'expo-qr.html'), 'utf8');
+    html = html.replace('/*__EXPO_BOOT__*/', JSON.stringify(dados));
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(html);
   })
   .listen(PORT, () => {
-    const u = 'http://localhost:' + PORT;
-    console.log('SOLIN QR -> ' + u);
-    console.log('Antes: npm run start:tunnel (Tunnel ready)');
-    if (process.platform === 'win32') exec('start "" "' + u + '"');
+    console.log('http://localhost:' + PORT);
+    console.log('Antes: npm start');
+    if (process.platform === 'win32') exec('start "" "http://localhost:' + PORT + '"');
   });
