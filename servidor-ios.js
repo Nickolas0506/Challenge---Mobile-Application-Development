@@ -1,5 +1,5 @@
 /**
- * Pagina QR: http://localhost:5500  |  npm run qr
+ * Pagina QR: http://localhost:5500  |  npm run qr  |  abrir-qr.bat
  */
 
 const http = require('http');
@@ -7,11 +7,13 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const net = require('net');
+const QRCode = require('qrcode');
 const { exec } = require('child_process');
 
 const PORT = 5500;
 const ROOT = __dirname;
 const EXPO_PORT = 8081;
+const HTML_PATH = path.join(ROOT, 'expo-qr.html');
 
 function ipLocal() {
   for (const nets of Object.values(os.networkInterfaces())) {
@@ -46,16 +48,23 @@ async function obterUrlExpo() {
     online,
     mensagem: online
       ? 'Escaneie com a Camera do iPhone (mesma Wi-Fi)'
-      : 'QR abaixo — depois rode npm start na pasta do projeto',
+      : 'Escaneie o QR — depois rode npm start',
   };
 }
 
-function injetarBoot(html, dados) {
-  const json = JSON.stringify(dados);
-  return html.replace(
-    /<script type="application\/json" id="boot-data">[\s\S]*?<\/script>/,
-    `<script type="application/json" id="boot-data">${json}</script>`
-  );
+async function gerarHtml(dados) {
+  const dataUrl = await QRCode.toDataURL(dados.url, {
+    width: 280,
+    margin: 2,
+    color: { dark: '#2e7d6b', light: '#ffffff' },
+  });
+
+  const img = `<img src="${dataUrl}" width="280" height="280" alt="QR Code SOLIN" />`;
+
+  return fs
+    .readFileSync(HTML_PATH, 'utf8')
+    .replace('<!-- QR_AQUI -->', img)
+    .replace('<!-- STATUS -->', dados.mensagem || '');
 }
 
 http
@@ -69,14 +78,14 @@ http
       return;
     }
 
-    const html = injetarBoot(fs.readFileSync(path.join(ROOT, 'expo-qr.html'), 'utf8'), dados);
+    const html = await gerarHtml(dados);
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
     res.end(html);
   })
   .listen(PORT, () => {
     const ip = ipLocal();
     console.log('');
-    console.log('  QR: http://localhost:' + PORT);
+    console.log('  QR na tela: http://localhost:' + PORT);
     console.log('  Link: exp://' + ip + ':' + EXPO_PORT);
     console.log('');
     if (process.platform === 'win32') {

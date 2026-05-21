@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>SOLIN — QR</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -21,82 +20,19 @@
       border-radius: 16px;
       padding: 28px 24px;
       text-align: center;
-      max-width: 300px;
+      max-width: 320px;
       width: 100%;
     }
     h1 { font-size: 28px; color: #2e7d6b; margin-bottom: 8px; }
-    #status { font-size: 13px; color: #666; margin-bottom: 16px; line-height: 1.4; }
-    #qrcode { display: flex; justify-content: center; }
+    #status { font-size: 13px; color: #666; margin-bottom: 16px; }
+    #qrcode img { display: block; margin: 0 auto; border-radius: 8px; }
   </style>
 </head>
 <body>
   <main>
     <h1>SOLIN</h1>
-    <p id="status"></p>
-    <div id="qrcode"></div>
+    <p id="status"><!-- STATUS --></p>
+    <div id="qrcode"><!-- QR_AQUI --></div>
   </main>
-  <script type="application/json" id="boot-data">{"url":"exp://127.0.0.1:8081","online":false,"mensagem":"Carregando QR..."}</script>
-  <script>
-    function lerBoot() {
-      try {
-        return JSON.parse(document.getElementById('boot-data').textContent);
-      } catch {
-        return { url: 'exp://127.0.0.1:8081', online: false, mensagem: '' };
-      }
-    }
-
-    function mostrarQr(url) {
-      const box = document.getElementById('qrcode');
-      box.innerHTML = '';
-      if (!url || typeof QRCode === 'undefined') return;
-      new QRCode(box, {
-        text: url,
-        width: 260,
-        height: 260,
-        colorDark: '#2e7d6b',
-        colorLight: '#ffffff',
-      });
-    }
-
-    function mostrar(dados) {
-      document.getElementById('status').textContent = dados.mensagem || '';
-      if (dados.url) mostrarQr(dados.url);
-    }
-
-    async function buscarApi(base) {
-      const res = await fetch(base + '/api/url', { cache: 'no-store' });
-      return res.json();
-    }
-
-    async function iniciar() {
-      if (location.protocol === 'file:') {
-        try {
-          window.location.replace('http://localhost:5500/');
-          return;
-        } catch {
-          /* segue */
-        }
-      }
-
-      mostrar(lerBoot());
-
-      async function atualizar() {
-        try {
-          mostrar(await buscarApi(''));
-        } catch {
-          try {
-            mostrar(await buscarApi('http://localhost:5500'));
-          } catch {
-            /* mantem QR do boot */
-          }
-        }
-      }
-
-      atualizar();
-      setInterval(atualizar, 3000);
-    }
-
-    iniciar();
-  </script>
 </body>
 </html>
