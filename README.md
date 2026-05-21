@@ -92,7 +92,9 @@ Em outro terminal:
 npm run qr
 ```
 
-Abra **http://localhost:5500** ou dê duplo clique em `abrir-qr.bat`.
+**Não abra** `expo-qr.html` com duplo clique no Explorer (o QR não aparece).
+
+Dê duplo clique em **`abrir-qr.bat`** ou rode `npm run qr` — o navegador abre em **http://localhost:5500** sozinho.
 
 **Primeiro login:** se ainda não houver pet salvo, o fluxo abre a rota `CadastroPet`; depois de salvar, segue para as abas.
 
