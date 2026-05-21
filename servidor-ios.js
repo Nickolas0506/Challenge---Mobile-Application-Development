@@ -1,6 +1,6 @@
 /**
- * Servidor local para exibir o QR do Expo no navegador (porta 5500).
- * NAO abra expo-qr.html com duplo clique — use: npm run qr ou abrir-qr.bat
+ * Servidor do QR (porta 5500). Use: npm run qr ou abrir-qr.bat
+ * NAO abra expo-qr.html direto no Explorer.
  */
 
 const http = require('http');
@@ -13,6 +13,7 @@ const { exec } = require('child_process');
 const PORT = 5500;
 const ROOT = __dirname;
 const HTML_PATH = path.join(ROOT, 'expo-qr.html');
+const EXPO_PORT = 8081;
 
 function lerJson(caminho) {
   try {
@@ -46,32 +47,104 @@ function portaAberta(porta) {
   });
 }
 
+/** Expo Go no iOS: URL tunnel sem :80 nem :443 (igual ao terminal do expo start). */
+function normalizarUrlExp(url) {
+  if (!url || !url.startsWith('exp://')) return url;
+  try {
+    const u = new URL(url);
+    if (u.hostname.endsWith('.exp.direct')) {
+      u.port = '';
+    }
+    return u.toString().replace(/\/$/, '');
+  } catch {
+    return url.replace(/:80$/, '').replace(/:443$/, '');
+  }
+}
+
+function buscarUrlNoMetro() {
+  return new Promise((resolve) => {
+    const req = http.request(
+      {
+        hostname: '127.0.0.1',
+        port: EXPO_PORT,
+        path: '/_expo/link',
+        method: 'GET',
+        headers: { 'expo-platform': 'ios' },
+        timeout: 2500,
+      },
+      (res) => {
+        const loc = res.headers.location;
+        if (loc && loc.startsWith('exp://')) {
+          resolve(normalizarUrlExp(loc));
+          return;
+        }
+        let body = '';
+        res.on('data', (c) => (body += c));
+        res.on('end', () => {
+          const m = body.match(/exp:\/\/[^\s"'<>]+/);
+          resolve(m ? normalizarUrlExp(m[0]) : null);
+        });
+      }
+    );
+    req.on('error', () => resolve(null));
+    req.on('timeout', () => {
+      req.destroy();
+      resolve(null);
+    });
+    req.end();
+  });
+}
+
 async function obterUrlExpo() {
-  const expoOnline = await portaAberta(8081);
+  const expoOnline = await portaAberta(EXPO_PORT);
+
+  if (expoOnline) {
+    const doMetro = await buscarUrlNoMetro();
+    if (doMetro) {
+      const modo = doMetro.includes('.exp.direct') ? 'tunnel' : 'lan';
+      return { url: doMetro, modo, online: true, fonte: 'metro' };
+    }
+  }
 
   const info = lerJson(path.join(ROOT, '.expo', 'packager-info.json'));
   if (info?.expoGoTunnelUrl) {
-    return { url: info.expoGoTunnelUrl, modo: 'tunnel', online: expoOnline };
+    return {
+      url: normalizarUrlExp(info.expoGoTunnelUrl),
+      modo: 'tunnel',
+      online: expoOnline,
+      fonte: 'packager',
+    };
   }
   if (info?.packagerUrl) {
-    return { url: info.packagerUrl, modo: 'lan', online: expoOnline };
+    return {
+      url: normalizarUrlExp(info.packagerUrl),
+      modo: 'lan',
+      online: expoOnline,
+      fonte: 'packager',
+    };
   }
 
   const settings = lerJson(path.join(ROOT, '.expo', 'settings.json'));
   const rand = settings?.urlRandomness?.toLowerCase?.();
   if (rand) {
     return {
-      url: `exp://${rand}-anonymous-8081.exp.direct:80`,
+      url: `exp://${rand}-anonymous-${EXPO_PORT}.exp.direct`,
       modo: 'tunnel',
       online: expoOnline,
+      fonte: 'settings',
+      aviso: expoOnline
+        ? null
+        : 'Rode: npx expo start --tunnel --go e espere Tunnel ready',
     };
   }
 
   const ip = ipLocal();
   return {
-    url: `exp://${ip}:8081`,
+    url: `exp://${ip}:${EXPO_PORT}`,
     modo: 'lan',
     online: expoOnline,
+    fonte: 'ip',
+    aviso: expoOnline ? null : 'Rode: npm start e espere o Metro subir',
   };
 }
 
@@ -97,8 +170,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (rota === '/' || rota === '/expo-qr.html') {
-    const dados = await obterUrlExpo();
-    servirHtml(res, dados);
+    servirHtml(res, await obterUrlExpo());
     return;
   }
 
@@ -109,13 +181,14 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   const url = 'http://localhost:' + PORT;
   console.log('');
-  console.log('  SOLIN — QR no navegador');
-  console.log('  -----------------------');
+  console.log('  SOLIN — QR Expo Go');
+  console.log('  -----------------');
   console.log('  Pagina: ' + url);
-  console.log('  (nao abra expo-qr.html direto pelo Explorer)');
   console.log('');
-  console.log('  Terminal 1: npm start  (ou npx expo start --tunnel)');
-  console.log('  Terminal 2: npm run qr  (esta janela)');
+  console.log('  1) Terminal A: npx expo start --tunnel --go');
+  console.log('     (espere "Tunnel ready" antes de escanear)');
+  console.log('  2) Terminal B: npm run qr  (esta janela)');
+  console.log('  3) Escaneie o QR em ' + url);
   console.log('');
   if (process.platform === 'win32') {
     exec('start "" "' + url + '"');

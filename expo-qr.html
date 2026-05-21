@@ -134,7 +134,7 @@
 
       <div class="manual">
         URL do terminal (se o QR nao atualizar):
-        <input id="urlManual" type="text" placeholder="exp://....exp.direct:80" />
+        <input id="urlManual" type="text" placeholder="exp://....exp.direct (copie do terminal)" />
         <button type="button" class="btn" style="margin-top:8px;font-size:13px;padding:10px" id="btnManual">
           Atualizar QR
         </button>
@@ -183,14 +183,19 @@
       urlTxt.textContent = urlAtual;
       btn.href = urlAtual;
 
-      if (dados.online) {
+      if (dados.aviso) {
+        status.textContent = dados.aviso;
+        status.className = 'status wait';
+      } else if (dados.online) {
         status.textContent =
-          dados.modo === 'tunnel' ? 'Expo online — pode escanear' : 'Expo online (rede local)';
+          dados.modo === 'tunnel'
+            ? 'Expo online — escaneie agora (tunnel)'
+            : 'Expo online — escaneie (mesma Wi-Fi)';
         status.className = 'status ok';
       } else {
         status.textContent =
           dados.modo === 'tunnel'
-            ? 'Rode npm start --tunnel e escaneie'
+            ? 'Expo parado — rode: npx expo start --tunnel --go'
             : 'Aguardando npm start na porta 8081...';
         status.className = 'status wait';
       }

@@ -94,7 +94,11 @@ npm run qr
 
 **Não abra** `expo-qr.html` com duplo clique no Explorer (o QR não aparece).
 
-Dê duplo clique em **`abrir-qr.bat`** ou rode `npm run qr` — o navegador abre em **http://localhost:5500** sozinho.
+**Mais fácil (iPhone):** duplo clique em **`iniciar-tudo.bat`** — abre Expo com tunnel + página do QR.
+
+Ou manualmente: `npm run start:tunnel` (espere **Tunnel ready**) e em outro terminal `npm run qr` → **http://localhost:5500**
+
+> Copie a URL do terminal se for diferente (sem `:80` no final). Cole no campo da página e toque **Atualizar QR**.
 
 **Primeiro login:** se ainda não houver pet salvo, o fluxo abre a rota `CadastroPet`; depois de salvar, segue para as abas.
 
