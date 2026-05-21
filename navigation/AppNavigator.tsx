@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, AppState, StyleSheet, Text, View } from 'react-native';
 import { BarraAbas } from '../components/BarraAbas';
 import { theme } from '../constants/theme';
+import { navegarAposLogin } from '../lib/navegacaoPosLogin';
 import { Storage } from '../lib/storage';
 import AlertasScreen from '../screens/AlertasScreen';
 import CadastroPetScreen from '../screens/CadastroPetScreen';
@@ -97,9 +98,9 @@ export default function AppNavigator() {
           {(props) => (
             <LoginScreen
               {...props}
-              onLogado={() => {
+              onLogado={async () => {
                 jaUsouApp.current = true;
-                props.navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+                await navegarAposLogin(props.navigation);
               }}
             />
           )}
