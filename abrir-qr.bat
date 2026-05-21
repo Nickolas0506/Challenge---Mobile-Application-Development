@@ -1,3 +1,4 @@
 @echo off
 cd /d "%~dp0"
-node servidor-ios.js
+node gerar-pagina-qr.js
+pause

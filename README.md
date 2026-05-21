@@ -87,7 +87,8 @@ Escaneie o **QR code** que aparece no terminal com o **Expo Go** (Android) ou co
 3. PC e iPhone na **mesma Wi-Fi**
 4. Escaneie o **QR na pagina** (ou no terminal)
 
-So o QR na pagina: `abrir-qr.bat` (com `npm start` rodando em outro terminal).
+**QR na tela:** duplo clique em `abrir-qr.bat` (gera o `expo-qr.html` com QR dentro).  
+Nao abra `expo-qr.html` antes de rodar o bat — o arquivo fica vazio.
 
 Tunnel (`npm run start:tunnel`) só se a rede local não funcionar.
 
