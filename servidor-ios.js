@@ -1,6 +1,6 @@
 /**
- * QR na tela do PC — npm run qr (opcional)
- * O QR so aparece com Expo rodando (npm start).
+ * Pagina QR: http://localhost:5500
+ * Use junto com: npm start (iniciar.bat)
  */
 
 const http = require('http');
@@ -30,34 +30,10 @@ function portaAberta(porta) {
       resolve(true);
     });
     s.on('error', () => resolve(false));
-    s.setTimeout(600, () => {
+    s.setTimeout(500, () => {
       s.destroy();
       resolve(false);
     });
-  });
-}
-
-function urlDoMetro() {
-  return new Promise((resolve) => {
-    const req = http.request(
-      {
-        hostname: '127.0.0.1',
-        port: EXPO_PORT,
-        path: '/_expo/link',
-        headers: { 'expo-platform': 'ios' },
-        timeout: 2000,
-      },
-      (res) => {
-        const loc = res.headers.location;
-        resolve(loc?.startsWith('exp://') ? loc : null);
-      }
-    );
-    req.on('error', () => resolve(null));
-    req.on('timeout', () => {
-      req.destroy();
-      resolve(null);
-    });
-    req.end();
   });
 }
 
@@ -68,13 +44,8 @@ async function obterUrlExpo() {
     return {
       url: null,
       online: false,
-      mensagem: 'Rode npm start e espere o QR no terminal',
+      mensagem: 'Expo parado. Rode iniciar.bat e espere o QR no terminal.',
     };
-  }
-
-  const doMetro = await urlDoMetro();
-  if (doMetro) {
-    return { url: doMetro, online: true };
   }
 
   const ip = ipLocal();
@@ -82,15 +53,23 @@ async function obterUrlExpo() {
     return {
       url: `exp://${ip}:${EXPO_PORT}`,
       online: true,
-      mensagem: 'Escaneie (PC e celular na mesma Wi-Fi)',
+      mensagem: 'Escaneie (mesma Wi-Fi no iPhone)',
     };
   }
 
   return {
-    url: null,
+    url: `exp://127.0.0.1:${EXPO_PORT}`,
     online: true,
-    mensagem: 'Use o QR do terminal do Expo',
+    mensagem: 'Escaneie com a Camera do iPhone',
   };
+}
+
+function injetarBoot(html, dados) {
+  const json = JSON.stringify(dados);
+  return html.replace(
+    /<script type="application\/json" id="boot-data">[\s\S]*?<\/script>/,
+    `<script type="application/json" id="boot-data">${json}</script>`
+  );
 }
 
 http
@@ -99,18 +78,21 @@ http
     const dados = await obterUrlExpo();
 
     if (rota === '/api/url') {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
       res.end(JSON.stringify(dados));
       return;
     }
 
-    let html = fs.readFileSync(path.join(ROOT, 'expo-qr.html'), 'utf8');
-    html = html.replace('/*__EXPO_BOOT__*/', JSON.stringify(dados));
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    const html = injetarBoot(fs.readFileSync(path.join(ROOT, 'expo-qr.html'), 'utf8'), dados);
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
     res.end(html);
   })
   .listen(PORT, () => {
-    console.log('http://localhost:' + PORT);
-    console.log('Antes: npm start');
-    if (process.platform === 'win32') exec('start "" "http://localhost:' + PORT + '"');
+    console.log('');
+    console.log('  Pagina QR: http://localhost:' + PORT);
+    console.log('  O Expo precisa estar rodando (iniciar.bat).');
+    console.log('');
+    if (process.platform === 'win32') {
+      exec('start "" "http://localhost:' + PORT + '"');
+    }
   });
