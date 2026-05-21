@@ -1,6 +1,5 @@
 /**
- * Pagina QR: http://localhost:5500
- * Use junto com: npm start (iniciar.bat)
+ * Pagina QR: http://localhost:5500  |  npm run qr
  */
 
 const http = require('http');
@@ -20,7 +19,7 @@ function ipLocal() {
       if (n.family === 'IPv4' && !n.internal) return n.address;
     }
   }
-  return null;
+  return '127.0.0.1';
 }
 
 function portaAberta(porta) {
@@ -39,28 +38,15 @@ function portaAberta(porta) {
 
 async function obterUrlExpo() {
   const online = await portaAberta(EXPO_PORT);
-
-  if (!online) {
-    return {
-      url: null,
-      online: false,
-      mensagem: 'Expo parado. Rode iniciar.bat e espere o QR no terminal.',
-    };
-  }
-
   const ip = ipLocal();
-  if (ip) {
-    return {
-      url: `exp://${ip}:${EXPO_PORT}`,
-      online: true,
-      mensagem: 'Escaneie (mesma Wi-Fi no iPhone)',
-    };
-  }
+  const url = `exp://${ip}:${EXPO_PORT}`;
 
   return {
-    url: `exp://127.0.0.1:${EXPO_PORT}`,
-    online: true,
-    mensagem: 'Escaneie com a Camera do iPhone',
+    url,
+    online,
+    mensagem: online
+      ? 'Escaneie com a Camera do iPhone (mesma Wi-Fi)'
+      : 'QR abaixo — depois rode npm start na pasta do projeto',
   };
 }
 
@@ -88,9 +74,10 @@ http
     res.end(html);
   })
   .listen(PORT, () => {
+    const ip = ipLocal();
     console.log('');
-    console.log('  Pagina QR: http://localhost:' + PORT);
-    console.log('  O Expo precisa estar rodando (iniciar.bat).');
+    console.log('  QR: http://localhost:' + PORT);
+    console.log('  Link: exp://' + ip + ':' + EXPO_PORT);
     console.log('');
     if (process.platform === 'win32') {
       exec('start "" "http://localhost:' + PORT + '"');

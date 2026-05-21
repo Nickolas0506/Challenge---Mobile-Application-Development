@@ -19,31 +19,29 @@
     main {
       background: #fff;
       border-radius: 16px;
-      padding: 32px 28px;
+      padding: 28px 24px;
       text-align: center;
-      max-width: 320px;
+      max-width: 300px;
       width: 100%;
     }
-    h1 { font-size: 28px; color: #2e7d6b; margin-bottom: 12px; }
-    #status { font-size: 14px; line-height: 1.4; margin-bottom: 20px; min-height: 40px; color: #666; }
-    #status.erro { color: #c45a3a; font-weight: 600; }
-    #status.ok { color: #2e7d6b; font-weight: 600; }
-    #qrcode { min-height: 260px; display: flex; align-items: center; justify-content: center; }
+    h1 { font-size: 28px; color: #2e7d6b; margin-bottom: 8px; }
+    #status { font-size: 13px; color: #666; margin-bottom: 16px; line-height: 1.4; }
+    #qrcode { display: flex; justify-content: center; }
   </style>
 </head>
 <body>
   <main>
     <h1>SOLIN</h1>
-    <p id="status">Aguardando Expo...</p>
+    <p id="status"></p>
     <div id="qrcode"></div>
   </main>
-  <script type="application/json" id="boot-data">{"online":false,"url":null,"mensagem":"Feche esta aba. De duplo clique em iniciar.bat na pasta do projeto."}</script>
+  <script type="application/json" id="boot-data">{"url":"exp://127.0.0.1:8081","online":false,"mensagem":"Carregando QR..."}</script>
   <script>
     function lerBoot() {
       try {
         return JSON.parse(document.getElementById('boot-data').textContent);
       } catch {
-        return { online: false, url: null, mensagem: 'Erro na pagina. Use iniciar.bat' };
+        return { url: 'exp://127.0.0.1:8081', online: false, mensagem: '' };
       }
     }
 
@@ -53,40 +51,52 @@
       if (!url || typeof QRCode === 'undefined') return;
       new QRCode(box, {
         text: url,
-        width: 240,
-        height: 240,
+        width: 260,
+        height: 260,
         colorDark: '#2e7d6b',
         colorLight: '#ffffff',
       });
     }
 
     function mostrar(dados) {
-      const st = document.getElementById('status');
-      if (dados.online && dados.url) {
-        st.textContent = dados.mensagem || 'Escaneie com a Camera do iPhone';
-        st.className = 'ok';
-        mostrarQr(dados.url);
-        return;
-      }
-      st.textContent = dados.mensagem || 'Abra iniciar.bat e espere o Expo subir';
-      st.className = 'erro';
-      document.getElementById('qrcode').innerHTML = '';
+      document.getElementById('status').textContent = dados.mensagem || '';
+      if (dados.url) mostrarQr(dados.url);
     }
 
-    async function atualizar() {
-      try {
-        const res = await fetch('/api/url', { cache: 'no-store' });
-        mostrar(await res.json());
-      } catch {
-        mostrar(lerBoot());
-      }
+    async function buscarApi(base) {
+      const res = await fetch(base + '/api/url', { cache: 'no-store' });
+      return res.json();
     }
 
-    mostrar(lerBoot());
-    if (location.protocol !== 'file:') {
+    async function iniciar() {
+      if (location.protocol === 'file:') {
+        try {
+          window.location.replace('http://localhost:5500/');
+          return;
+        } catch {
+          /* segue */
+        }
+      }
+
+      mostrar(lerBoot());
+
+      async function atualizar() {
+        try {
+          mostrar(await buscarApi(''));
+        } catch {
+          try {
+            mostrar(await buscarApi('http://localhost:5500'));
+          } catch {
+            /* mantem QR do boot */
+          }
+        }
+      }
+
       atualizar();
-      setInterval(atualizar, 2000);
+      setInterval(atualizar, 3000);
     }
+
+    iniciar();
   </script>
 </body>
 </html>

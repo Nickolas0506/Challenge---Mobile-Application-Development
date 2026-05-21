@@ -83,11 +83,11 @@ Escaneie o **QR code** que aparece no terminal com o **Expo Go** (Android) ou co
 **Se deu ERR_NGROK_3200:** o tunnel caiu. Use rede local (mais estável):
 
 1. Duplo clique em **`corrigir-expo.bat`** (só na primeira vez ou se der erro)
-2. Duplo clique em **`iniciar.bat`** — abre Expo + página do QR
+2. Duplo clique em **`iniciar.bat`** — abre Expo + QR em http://localhost:5500
 3. PC e iPhone na **mesma Wi-Fi**
-4. Escaneie o QR (no terminal **ou** em http://localhost:5500)
+4. Escaneie o **QR na pagina** (ou no terminal)
 
-Se a pagina ficar em "Aguardando Expo", o Expo ainda nao subiu — espere a janela **SOLIN Expo**.
+So o QR na pagina: `abrir-qr.bat` (com `npm start` rodando em outro terminal).
 
 Tunnel (`npm run start:tunnel`) só se a rede local não funcionar.
 
