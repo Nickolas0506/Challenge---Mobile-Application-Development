@@ -3,231 +3,92 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SOLIN — QR Expo Go</title>
+  <title>SOLIN — QR</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: #f5f7f6;
+      font-family: system-ui, sans-serif;
+      background: #2e7d6b;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 24px;
-    }
-    .card {
-      max-width: 420px;
-      width: 100%;
-      background: #fff;
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 12px 40px rgba(46, 125, 107, 0.15);
-    }
-    .topo {
-      background: #2e7d6b;
-      color: #fff;
-      padding: 28px 24px;
-      text-align: center;
-    }
-    .marca { font-size: 36px; font-weight: 800; letter-spacing: 3px; }
-    .slogan { margin-top: 8px; font-size: 14px; opacity: 0.92; }
-    .corpo { padding: 24px; text-align: center; }
-    .badge {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #2e7d6b;
-      background: #e8f6f3;
-      padding: 6px 12px;
-      border-radius: 20px;
-      margin-bottom: 12px;
-    }
-    .dica { font-size: 14px; color: #5a6b65; line-height: 1.5; margin-bottom: 16px; }
-    .erro-arquivo {
-      display: none;
-      background: #fff0eb;
-      border: 2px solid #e76f51;
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 16px;
-      font-size: 13px;
-      color: #c45a3a;
-      text-align: left;
-      line-height: 1.5;
-    }
-    .erro-arquivo code { background: #fff; padding: 2px 6px; border-radius: 4px; }
-    .qr-box {
-      background: #e8f6f3;
-      border-radius: 16px;
       padding: 20px;
-      display: inline-block;
-      margin-bottom: 16px;
-      min-height: 260px;
-      min-width: 260px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
-    #qrcode canvas, #qrcode img { display: block; margin: 0 auto; }
-    .status { font-size: 13px; font-weight: 600; margin-bottom: 12px; }
-    .status.ok { color: #2e7d6b; }
-    .status.wait { color: #e76f51; }
-    .url { font-size: 11px; color: #8a9a94; word-break: break-all; margin-bottom: 16px; padding: 0 8px; }
-    .btn {
-      display: inline-block;
-      background: #2e7d6b;
-      color: #fff;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 15px;
-      padding: 14px 28px;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
+    main {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px 28px;
+      text-align: center;
+      max-width: 320px;
       width: 100%;
-      max-width: 280px;
     }
-    .btn:hover { background: #256b5c; }
-    .manual { margin-top: 12px; font-size: 12px; color: #8a9a94; }
-    .manual input {
-      width: 100%;
-      margin-top: 8px;
-      padding: 10px;
-      border: 1px solid #d0ddd8;
-      border-radius: 8px;
-      font-size: 12px;
-    }
-    .aviso { margin-top: 16px; font-size: 12px; color: #8a9a94; line-height: 1.4; }
-    .rodape { text-align: center; font-size: 12px; color: #8a9a94; padding: 0 24px 24px; }
+    h1 { font-size: 28px; color: #2e7d6b; margin-bottom: 8px; }
+    #status { font-size: 14px; color: #666; margin-bottom: 20px; min-height: 20px; }
+    #status.erro { color: #c45a3a; font-weight: 600; }
+    #status.ok { color: #2e7d6b; font-weight: 600; }
+    #qrcode { display: inline-block; padding: 12px; background: #f5f7f6; border-radius: 12px; }
+    #qrcode:empty::after { content: '...'; color: #999; font-size: 24px; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="topo">
-      <div class="marca">SOLIN</div>
-      <div class="slogan">O cuidado que protege o seu pet</div>
-    </div>
-    <div class="corpo">
-      <div class="badge">Preview · Expo Go</div>
-
-      <div id="erroArquivo" class="erro-arquivo">
-        <strong>Voce abriu o arquivo direto.</strong> O QR so funciona pelo servidor.<br><br>
-        1. Feche esta aba<br>
-        2. De duplo clique em <code>abrir-qr.bat</code><br>
-        &nbsp;&nbsp;&nbsp;ou no terminal: <code>npm run qr</code><br>
-        3. Abra <code>http://localhost:5500</code>
-      </div>
-
-      <p class="dica">
-        Escaneie com a <strong>Camera</strong> (iPhone) ou <strong>Expo Go</strong> (Android).
-        Deixe <code>npm start</code> rodando no PC antes.
-      </p>
-      <p id="status" class="status wait">Carregando...</p>
-      <div class="qr-box">
-        <div id="qrcode"></div>
-      </div>
-      <p id="urlTxt" class="url"></p>
-      <a id="btnAbrir" class="btn" href="#">Abrir no Expo Go</a>
-
-      <div class="manual">
-        URL do terminal (se o QR nao atualizar):
-        <input id="urlManual" type="text" placeholder="exp://....exp.direct (copie do terminal)" />
-        <button type="button" class="btn" style="margin-top:8px;font-size:13px;padding:10px" id="btnManual">
-          Atualizar QR
-        </button>
-      </div>
-
-      <p class="aviso">Esta pagina so mostra o QR. O app roda no celular — nao no navegador.</p>
-    </div>
-    <div class="rodape">Challenge FIAP 2026 · Clyvo Vet</div>
-  </div>
-
+  <main>
+    <h1>SOLIN</h1>
+    <p id="status">Conectando...</p>
+    <div id="qrcode"></div>
+  </main>
   <script>
     const BOOT = /*__EXPO_BOOT__*/;
-    let urlAtual = '';
 
-    function renderizarQr(url) {
-      const el = document.getElementById('qrcode');
-      el.innerHTML = '';
-      if (!url || typeof QRCode === 'undefined') return;
-      new QRCode(el, {
-        text: url,
-        width: 220,
-        height: 220,
+    function limparPorta(url) {
+      if (!url) return url;
+      return url.replace(/\.exp\.direct:80|\.exp\.direct:443/gi, '.exp.direct');
+    }
+
+    function mostrarQr(url) {
+      const u = limparPorta(url);
+      document.getElementById('qrcode').innerHTML = '';
+      if (!u || typeof QRCode === 'undefined') return;
+      new QRCode(document.getElementById('qrcode'), {
+        text: u,
+        width: 240,
+        height: 240,
         colorDark: '#2e7d6b',
         colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M,
       });
     }
 
-    function atualizarTela(dados) {
-      const status = document.getElementById('status');
-      const urlTxt = document.getElementById('urlTxt');
-      const btn = document.getElementById('btnAbrir');
-
-      if (!dados?.url) {
-        status.textContent = 'Inicie o Expo no PC: npm start';
-        status.className = 'status wait';
+    function mostrarStatus(dados) {
+      const el = document.getElementById('status');
+      if (!dados.online || !dados.url) {
+        el.textContent = dados.mensagem || 'Expo offline — rode: npm run start:tunnel';
+        el.className = 'erro';
+        document.getElementById('qrcode').innerHTML = '';
         return;
       }
-
-      if (dados.url !== urlAtual) {
-        urlAtual = dados.url;
-        renderizarQr(urlAtual);
-        document.getElementById('urlManual').value = urlAtual;
-      }
-
-      urlTxt.textContent = urlAtual;
-      btn.href = urlAtual;
-
-      if (dados.aviso) {
-        status.textContent = dados.aviso;
-        status.className = 'status wait';
-      } else if (dados.online) {
-        status.textContent =
-          dados.modo === 'tunnel'
-            ? 'Expo online — escaneie agora (tunnel)'
-            : 'Expo online — escaneie (mesma Wi-Fi)';
-        status.className = 'status ok';
-      } else {
-        status.textContent =
-          dados.modo === 'tunnel'
-            ? 'Expo parado — rode: npx expo start --tunnel --go'
-            : 'Aguardando npm start na porta 8081...';
-        status.className = 'status wait';
-      }
+      el.textContent = 'Escaneie com a Camera do iPhone';
+      el.className = 'ok';
+      mostrarQr(dados.url);
     }
 
-    async function buscarUrl() {
+    async function atualizar() {
       try {
-        const res = await fetch('/api/url');
-        atualizarTela(await res.json());
-      } catch (e) {
-        if (BOOT) atualizarTela(BOOT);
-        else {
-          document.getElementById('status').textContent =
-            'Servidor offline — rode npm run qr ou abrir-qr.bat';
-          document.getElementById('status').className = 'status wait';
-        }
+        const dados = await (await fetch('/api/url')).json();
+        mostrarStatus(dados);
+      } catch {
+        mostrarStatus(BOOT || { online: false, mensagem: 'Rode: npm run qr' });
       }
     }
 
     if (location.protocol === 'file:') {
-      document.getElementById('erroArquivo').style.display = 'block';
-      document.getElementById('status').textContent = 'Abra http://localhost:5500';
+      document.getElementById('status').textContent = 'Use abrir-qr.bat (nao abra este arquivo direto)';
+      document.getElementById('status').className = 'erro';
     } else {
-      if (BOOT) atualizarTela(BOOT);
-      buscarUrl();
-      setInterval(buscarUrl, 2000);
+      mostrarStatus(BOOT || { online: false });
+      atualizar();
+      setInterval(atualizar, 2000);
     }
-
-    document.getElementById('btnManual').onclick = function () {
-      const u = document.getElementById('urlManual').value.trim();
-      if (u.startsWith('exp://')) atualizarTela({ url: u, modo: 'manual', online: true });
-    };
   </script>
 </body>
 </html>

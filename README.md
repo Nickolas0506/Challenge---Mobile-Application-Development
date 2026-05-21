@@ -78,27 +78,13 @@ Escaneie o **QR code** que aparece no terminal com o **Expo Go** (Android) ou co
 
 > **Importante:** use celular ou emulador. O app não roda no navegador (Expo Web) — a tela exibe aviso para abrir no Expo Go, conforme exigência do sprint.
 
-### QR code no navegador (opcional)
+### Abrir no celular (Expo Go)
 
-Página auxiliar para **escanear** o QR na tela do PC (não é o app rodando na web):
+1. Terminal: `npm run start:tunnel` — espere **Tunnel ready**
+2. Escaneie o **QR do próprio terminal** (recomendado)
 
-```bash
-npm start
-```
-
-Em outro terminal:
-
-```bash
-npm run qr
-```
-
-**Não abra** `expo-qr.html` com duplo clique no Explorer (o QR não aparece).
-
-**Mais fácil (iPhone):** duplo clique em **`iniciar-tudo.bat`** — abre Expo com tunnel + página do QR.
-
-Ou manualmente: `npm run start:tunnel` (espere **Tunnel ready**) e em outro terminal `npm run qr` → **http://localhost:5500**
-
-> Copie a URL do terminal se for diferente (sem `:80` no final). Cole no campo da página e toque **Atualizar QR**.
+Opcional — QR na tela do PC: `iniciar-tudo.bat` ou `npm run qr` → http://localhost:5500  
+(Só aparece QR quando o Expo estiver rodando.)
 
 **Primeiro login:** se ainda não houver pet salvo, o fluxo abre a rota `CadastroPet`; depois de salvar, segue para as abas.
 
