@@ -74,25 +74,23 @@ npm install
 npm start
 ```
 
-Escaneie o **QR code** que aparece no terminal com o **Expo Go** (Android) ou com a **Câmera** do iPhone.
+Escaneie o **QR code do terminal** com o **Expo Go** (Android) ou com a **Câmera** do iPhone (mesma Wi-Fi que o PC).
 
-> **Importante:** use celular ou emulador. O app não roda no navegador (Expo Web) — a tela exibe aviso para abrir no Expo Go, conforme exigência do sprint.
+> **Importante:** demonstre no **celular ou emulador**, não só no navegador (Expo Web).
 
-### Abrir no celular (Expo Go)
+**Primeiro login:** sem pet cadastrado, o app abre `CadastroPet`; depois de salvar, segue para as abas.
 
-**Se deu ERR_NGROK_3200:** o tunnel caiu. Use rede local (mais estável):
+---
 
-1. Duplo clique em **`corrigir-expo.bat`** (só na primeira vez ou se der erro)
-2. Duplo clique em **`iniciar.bat`** — abre Expo + QR em http://localhost:5500
-3. PC e iPhone na **mesma Wi-Fi**
-4. Escaneie o **QR na pagina** (ou no terminal)
+## Requisitos do 1º sprint (FIAP)
 
-**QR na tela:** duplo clique em `abrir-qr.bat` (gera o `expo-qr.html` com QR dentro).  
-Nao abra `expo-qr.html` antes de rodar o bat — o arquivo fica vazio.
-
-Tunnel (`npm run start:tunnel`) só se a rede local não funcionar.
-
-**Primeiro login:** se ainda não houver pet salvo, o fluxo abre a rota `CadastroPet`; depois de salvar, segue para as abas.
+| Requisito | Onde no projeto |
+|:----------|:----------------|
+| Navegação (≥ 5 rotas, React Navigation) | `navigation/AppNavigator.tsx` |
+| Protótipo visual | `screens/`, `components/` |
+| Formulário com `useState` | `LoginScreen`, `MeuPetScreen`, `PasseioScreen` |
+| AsyncStorage | `lib/storage.ts` |
+| README | este arquivo |
 
 ---
 
@@ -151,7 +149,9 @@ solin-mobile/
 ├── screens/
 ├── App.tsx
 ├── app.json
-└── index.ts
+├── index.ts
+├── metro.config.js
+└── package.json
 ```
 
 ---
