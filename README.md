@@ -71,10 +71,11 @@ https://github.com/Nickolas0506/Challenge---Mobile-Application-Development.git
 ```bash
 cd solin-mobile
 npm install
-npm start
+npm run web          # navegador (PC)
+npm run celular      # QR na tela + Expo Go no celular
 ```
 
-Escaneie o **QR code do terminal** com o **Expo Go** (Android) ou com a **Câmera** do iPhone (mesma Wi-Fi que o PC).
+Ou dê duplo clique em **`abrir-celular.bat`**: detecta o IP do PC, abre **`qr.html`** com o QR e sobe o Expo. Escaneie com a **Câmera** do iPhone (mesma Wi-Fi).
 
 > **Importante:** demonstre no **celular ou emulador**, não só no navegador (Expo Web).
 
@@ -95,6 +96,11 @@ Escaneie o **QR code do terminal** com o **Expo Go** (Android) ou com a **Câmer
 ---
 
 ## Navegação
+
+**Este projeto usa apenas React Navigation** (`@react-navigation/native`, Stack e Bottom Tabs).
+
+- **Não** usa Expo Router (sem pasta `app/`, sem `expo-router` no código nem em `package.json`).
+- O arquivo `.npmrc` com `omit=optional` evita instalar o pacote `expo-router`, que às vezes aparece só como dependência opcional da ferramenta `expo` — **não faz parte do app**.
 
 O app possui **mais de 5 rotas** navegáveis, com **React Navigation**.
 

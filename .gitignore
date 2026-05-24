@@ -11,6 +11,7 @@ npm-debug.*
 web-build/
 .env
 .env.local
+.expo-url.txt
 
 # macOS
 .DS_Store

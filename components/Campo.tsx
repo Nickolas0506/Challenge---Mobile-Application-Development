@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { theme } from '../constants/theme';
 
 type Props = {
@@ -16,7 +16,7 @@ export function Campo({ label, value, onChange, placeholder, seguro, multiline, 
     <View style={styles.box}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
-        style={[styles.input, multiline && styles.multiline]}
+        style={[styles.input, multiline && styles.multiline, Platform.OS === 'web' && styles.inputWeb]}
         value={value}
         onChangeText={onChange}
         placeholder={placeholder}
@@ -24,6 +24,10 @@ export function Campo({ label, value, onChange, placeholder, seguro, multiline, 
         secureTextEntry={seguro}
         multiline={multiline}
         keyboardType={teclado}
+        editable
+        selectTextOnFocus={false}
+        autoCapitalize={teclado === 'email-address' ? 'none' : 'sentences'}
+        autoCorrect={teclado === 'email-address' ? false : true}
       />
     </View>
   );
@@ -43,4 +47,9 @@ const styles = StyleSheet.create({
     color: theme.cores.texto,
   },
   multiline: { minHeight: 88, textAlignVertical: 'top' },
+  inputWeb: {
+    outlineStyle: 'solid',
+    outlineWidth: 0,
+    cursor: 'text',
+  } as const,
 });

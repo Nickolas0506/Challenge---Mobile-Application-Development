@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../constants/theme';
 
 type Props = {
@@ -9,8 +10,10 @@ type Props = {
 };
 
 export function CabecalhoTela({ titulo, subtitulo, onVoltarInicio }: Props) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, { paddingTop: insets.top + theme.espaco.sm }]}>
       {onVoltarInicio ? (
         <Pressable
           style={({ pressed }) => [styles.btnInicio, pressed && styles.btnInicioPressed]}
@@ -32,7 +35,6 @@ export function CabecalhoTela({ titulo, subtitulo, onVoltarInicio }: Props) {
 const styles = StyleSheet.create({
   wrap: {
     paddingHorizontal: theme.espaco.md,
-    paddingTop: theme.espaco.lg,
     paddingBottom: theme.espaco.sm,
     backgroundColor: theme.cores.fundo,
   },
@@ -52,6 +54,6 @@ const styles = StyleSheet.create({
   },
   btnInicioPressed: { opacity: 0.85 },
   btnInicioTxt: { fontSize: 14, fontWeight: '700', color: theme.cores.verdeEscuro },
-  titulo: { fontSize: 26, fontWeight: '800', color: theme.cores.texto },
+  titulo: { fontSize: 24, fontWeight: '800', color: theme.cores.texto },
   sub: { fontSize: 14, color: theme.cores.textoClaro, marginTop: 4, lineHeight: 20 },
 });

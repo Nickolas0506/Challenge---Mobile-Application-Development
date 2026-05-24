@@ -91,6 +91,7 @@ export default function CheckinScreen({ navigation }: Props) {
             placeholder="Ex: comeu bem, brincou..."
             placeholderTextColor={theme.cores.textoClaro}
             multiline
+            editable
           />
         </Card>
 

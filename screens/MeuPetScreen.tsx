@@ -32,6 +32,10 @@ import type { TabParamList } from '../navigation/types';
 
 type Props = {
   onSalvo?: () => void;
+  /** Quando vem da pilha CadastroPet (QR / primeiro acesso). */
+  onVoltarInicio?: () => void;
+  onIrInicio?: () => void;
+  onIrHistorico?: () => void;
 };
 
 function petParaFormulario(pet: Pet | null) {
@@ -75,8 +79,17 @@ function montarResumoPet(pet: Pet) {
     .join(' · ');
 }
 
-export default function MeuPetScreen({ onSalvo }: Props) {
+export default function MeuPetScreen({
+  onSalvo,
+  onVoltarInicio,
+  onIrInicio,
+  onIrHistorico,
+}: Props) {
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
+
+  const voltarInicio = onVoltarInicio ?? (() => navigation.navigate('Inicio'));
+  const irInicio = onIrInicio ?? (() => navigation.navigate('Inicio'));
+  const irHistorico = onIrHistorico ?? (() => navigation.navigate('Historico'));
   const scrollRef = useRef<ScrollView>(null);
   const bloquearRecarga = useRef(false);
 
@@ -209,7 +222,10 @@ export default function MeuPetScreen({ onSalvo }: Props) {
         Alert.alert('Salvo', textoOk);
       }
 
-      if (onSalvo) onSalvo();
+      if (eraNovo) {
+        if (onSalvo) onSalvo();
+        else navigation.navigate('Inicio');
+      }
     } catch (e) {
       bloquearRecarga.current = false;
       const msg = e instanceof Error ? e.message : 'Erro ao salvar. Tente de novo.';
@@ -249,7 +265,7 @@ export default function MeuPetScreen({ onSalvo }: Props) {
             ? 'Edite os dados e toque em Salvar alteracoes no final da tela.'
             : 'Cadastre um novo pet para comecar check-ins, passeios e alertas.'
         }
-        onVoltarInicio={() => navigation.navigate('Inicio')}
+        onVoltarInicio={voltarInicio}
       />
       <TelaLayout ref={scrollRef} contentContainerStyle={styles.scrollExtra}>
         <Card style={styles.dica}>
@@ -327,10 +343,10 @@ export default function MeuPetScreen({ onSalvo }: Props) {
               <Text style={styles.feedbackOkTxt}>{mensagemOk}</Text>
             </View>
             <View style={styles.acoesOk}>
-              <Pressable style={styles.linkBtn} onPress={() => navigation.navigate('Inicio')}>
+              <Pressable style={styles.linkBtn} onPress={irInicio}>
                 <Text style={styles.linkBtnTxt}>Ir para Inicio</Text>
               </Pressable>
-              <Pressable style={styles.linkBtn} onPress={() => navigation.navigate('Historico')}>
+              <Pressable style={styles.linkBtn} onPress={irHistorico}>
                 <Text style={styles.linkBtnTxt}>Ver Historico</Text>
               </Pressable>
             </View>

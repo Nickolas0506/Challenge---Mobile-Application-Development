@@ -66,7 +66,7 @@ export default function PasseioScreen() {
     : 'Urina: nao urinou';
 
   return (
-    <TelaLayout keyboardShouldPersistTaps="handled">
+    <TelaLayout keyboardShouldPersistTaps="always">
       <CabecalhoTela
         titulo="Apos o passeio"
         subtitulo="Registre agua, urina, fezes e se o comportamento foi normal."

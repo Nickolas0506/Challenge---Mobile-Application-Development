@@ -1,18 +1,13 @@
 import 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
-import { Platform } from 'react-native';
-import AvisoPlataformaWeb from './components/AvisoPlataformaWeb';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AppNavigator from './navigation/AppNavigator';
 
 export default function App() {
-  if (Platform.OS === 'web') {
-    return <AvisoPlataformaWeb />;
-  }
-
   return (
-    <>
+    <SafeAreaProvider>
       <StatusBar style="light" />
       <AppNavigator />
-    </>
+    </SafeAreaProvider>
   );
 }

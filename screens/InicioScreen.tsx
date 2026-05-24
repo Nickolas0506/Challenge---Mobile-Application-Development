@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import { CommonActions, type CompositeScreenProps } from '@react-navigation/native';
+import type { CompositeScreenProps } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useState } from 'react';
@@ -12,6 +12,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AcaoCard } from '../components/AcaoCard';
 import { Card } from '../components/Card';
 import { ResumoDiaCard } from '../components/ResumoDiaCard';
@@ -19,6 +20,7 @@ import { TituloSecao } from '../components/TituloSecao';
 import { TelaLayout } from '../components/TelaLayout';
 import { theme } from '../constants/theme';
 import { Storage, type EventoIot, type Pet, type Streak, type Tutor } from '../lib/storage';
+import { sairDoApp } from '../navigation/ref';
 import type { RootStackParamList, TabParamList } from '../navigation/types';
 
 type Props = CompositeScreenProps<
@@ -27,6 +29,7 @@ type Props = CompositeScreenProps<
 >;
 
 export default function InicioScreen({ navigation }: Props) {
+  const insets = useSafeAreaInsets();
   const [tutor, setTutor] = useState<Tutor | null>(null);
   const [pet, setPet] = useState<Pet | null>(null);
   const [streak, setStreak] = useState<Streak>({ dias: 0, ultimaData: '' });
@@ -44,7 +47,7 @@ export default function InicioScreen({ navigation }: Props) {
 
   useFocusEffect(useCallback(() => { carregar(); }, [carregar]));
 
-  const primeiroNome = tutor?.nome?.split(' ')[0] ?? 'tutor';
+  const primeiroNome = tutor?.nome?.trim().split(/\s+/)[0] || 'tutor';
   const ultimoIot = eventosIot[0];
 
   return (
@@ -61,18 +64,13 @@ export default function InicioScreen({ navigation }: Props) {
         />
       }
     >
-      <View style={styles.hero}>
-        <Pressable
-          style={styles.sair}
-          onPress={async () => {
-            await Storage.logout();
-            navigation.dispatch(
-              CommonActions.reset({ index: 0, routes: [{ name: 'Login' }] })
-            );
-          }}
-        >
-          <Text style={styles.sairTxt}>Sair</Text>
-        </Pressable>
+      <View style={[styles.hero, { paddingTop: insets.top + theme.espaco.sm }]}>
+        <View style={styles.heroTopo}>
+          <View style={styles.heroEspaco} />
+          <Pressable style={styles.sair} onPress={() => void sairDoApp()} hitSlop={8}>
+            <Text style={styles.sairTxt}>Sair</Text>
+          </Pressable>
+        </View>
         <Text style={styles.ola}>Ola, {primeiroNome}</Text>
         <Text style={styles.frase}>
           {pet
@@ -206,14 +204,26 @@ const styles = StyleSheet.create({
   hero: {
     backgroundColor: theme.cores.verde,
     paddingHorizontal: theme.espaco.md,
-    paddingTop: theme.espaco.md,
     paddingBottom: theme.espaco.lg,
     borderBottomLeftRadius: theme.raio.lg,
     borderBottomRightRadius: theme.raio.lg,
   },
-  sair: { alignSelf: 'flex-end', paddingVertical: 4, paddingHorizontal: 8 },
-  sairTxt: { color: 'rgba(255,255,255,0.9)', fontWeight: '600', fontSize: 14 },
-  ola: { fontSize: 28, fontWeight: '800', color: '#fff' },
+  heroTopo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    minHeight: 36,
+    marginBottom: theme.espaco.sm,
+  },
+  heroEspaco: { flex: 1 },
+  sair: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: theme.raio.pill,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+  },
+  sairTxt: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  ola: { fontSize: 26, fontWeight: '800', color: '#fff', marginTop: 4 },
   frase: { fontSize: 15, color: 'rgba(255,255,255,0.92)', marginTop: 6, lineHeight: 22 },
   corpo: { padding: theme.espaco.md, paddingTop: theme.espaco.md },
   semPet: { alignItems: 'center', paddingVertical: theme.espaco.lg },

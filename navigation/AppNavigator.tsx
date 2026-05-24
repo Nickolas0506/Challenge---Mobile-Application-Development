@@ -1,9 +1,10 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, AppState, StyleSheet, Text, View } from 'react-native';
 import { BarraAbas } from '../components/BarraAbas';
+import { LogoSolin } from '../components/LogoSolin';
 import { theme } from '../constants/theme';
 import { navegarAposLogin } from '../lib/navegacaoPosLogin';
 import { Storage } from '../lib/storage';
@@ -17,13 +18,18 @@ import LoginScreen from '../screens/LoginScreen';
 import OrientacaoScreen from '../screens/OrientacaoScreen';
 import PasseioScreen from '../screens/PasseioScreen';
 import type { RootStackParamList, TabParamList } from './types';
+import { navigationRef } from './ref';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
+/** App aberto pelo QR — mantém sessão ao trocar de app durante a demo. */
+const viaQr = process.env.EXPO_PUBLIC_VIA_QR === '1';
+
 function AbasPrincipais() {
   return (
     <Tab.Navigator
+      initialRouteName="Inicio"
       tabBar={(props) => <BarraAbas {...props} />}
       screenOptions={{
         headerShown: false,
@@ -42,13 +48,12 @@ function AbasPrincipais() {
 
 export default function AppNavigator() {
   const [carregando, setCarregando] = useState(true);
-  const navRef = useNavigationContainerRef<RootStackParamList>();
   const jaUsouApp = useRef(false);
 
   async function irParaLogin() {
     await Storage.encerrarSessao();
-    if (navRef.isReady()) {
-      navRef.reset({ index: 0, routes: [{ name: 'Login' }] });
+    if (navigationRef.isReady()) {
+      navigationRef.reset({ index: 0, routes: [{ name: 'Login' }] });
     }
   }
 
@@ -61,6 +66,7 @@ export default function AppNavigator() {
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', (estado) => {
+      if (viaQr) return;
       if (!jaUsouApp.current) return;
       if (estado === 'background') {
         void Storage.encerrarSessao();
@@ -77,14 +83,15 @@ export default function AppNavigator() {
   if (carregando) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color={theme.cores.verde} />
-        <Text style={styles.loadingTxt}>Carregando SOLIN...</Text>
+        <LogoSolin largura={200} />
+        <ActivityIndicator size="large" color="#fff" style={styles.loadingSpinner} />
+        <Text style={styles.loadingTxt}>Carregando...</Text>
       </View>
     );
   }
 
   return (
-    <NavigationContainer ref={navRef}>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
         initialRouteName="Login"
         screenOptions={{
@@ -111,7 +118,10 @@ export default function AppNavigator() {
             <CadastroPetScreen
               {...props}
               onSalvo={() => {
-                props.navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+                props.navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'MainTabs', params: { screen: 'Inicio' } }],
+                });
               }}
             />
           )}
@@ -134,7 +144,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: theme.cores.fundo,
+    backgroundColor: theme.cores.verde,
   },
-  loadingTxt: { marginTop: 12, color: theme.cores.textoClaro },
+  loadingSpinner: { marginTop: theme.espaco.lg },
+  loadingTxt: { marginTop: 12, color: 'rgba(255,255,255,0.9)' },
 });
