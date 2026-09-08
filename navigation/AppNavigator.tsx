@@ -1,30 +1,37 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, AppState, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { BarraAbas } from '../components/BarraAbas';
 import { LogoSolin } from '../components/LogoSolin';
 import { theme } from '../constants/theme';
-import { navegarAposLogin } from '../lib/navegacaoPosLogin';
-import { Storage } from '../lib/storage';
+import { useAuth } from '../contexts/AuthContext';
 import AlertasScreen from '../screens/AlertasScreen';
-import CadastroPetScreen from '../screens/CadastroPetScreen';
+import AlertaFormScreen from '../screens/AlertaFormScreen';
+import CadastroScreen from '../screens/CadastroScreen';
+import CheckinEditarScreen from '../screens/CheckinEditarScreen';
 import CheckinScreen from '../screens/CheckinScreen';
-import MeuPetScreen from '../screens/MeuPetScreen';
 import HistoricoScreen from '../screens/HistoricoScreen';
 import InicioScreen from '../screens/InicioScreen';
 import LoginScreen from '../screens/LoginScreen';
+import MeuPetScreen from '../screens/MeuPetScreen';
 import OrientacaoScreen from '../screens/OrientacaoScreen';
+import PasseioEditarScreen from '../screens/PasseioEditarScreen';
 import PasseioScreen from '../screens/PasseioScreen';
-import type { RootStackParamList, TabParamList } from './types';
+import PetFormScreen from '../screens/PetFormScreen';
 import { navigationRef } from './ref';
+import type { AppStackParamList, AuthStackParamList, TabParamList } from './types';
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const AuthStack = createNativeStackNavigator<AuthStackParamList>();
+const AppStack = createNativeStackNavigator<AppStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
-/** App aberto pelo QR — mantém sessão ao trocar de app durante a demo. */
-const viaQr = process.env.EXPO_PUBLIC_VIA_QR === '1';
+const headerPadrao = {
+  headerStyle: { backgroundColor: theme.cores.verde },
+  headerTintColor: '#fff',
+  headerTitleStyle: { fontWeight: '700' as const, fontSize: 17 },
+  contentStyle: { backgroundColor: theme.cores.fundo },
+};
 
 function AbasPrincipais() {
   return (
@@ -46,95 +53,64 @@ function AbasPrincipais() {
   );
 }
 
+function RotasPublicas() {
+  return (
+    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+      <AuthStack.Screen name="Login" component={LoginScreen} />
+      <AuthStack.Screen name="Cadastro" component={CadastroScreen} />
+    </AuthStack.Navigator>
+  );
+}
+
+function RotasProtegidas() {
+  return (
+    <AppStack.Navigator screenOptions={{ ...headerPadrao, headerShown: false }}>
+      <AppStack.Screen name="MainTabs" component={AbasPrincipais} />
+      <AppStack.Screen
+        name="Orientacao"
+        component={OrientacaoScreen}
+        options={{ headerShown: true, title: 'Orientacao do dia' }}
+      />
+      <AppStack.Screen
+        name="PetForm"
+        component={PetFormScreen}
+        options={{ headerShown: true, title: 'Cadastro do pet' }}
+      />
+      <AppStack.Screen
+        name="CheckinEditar"
+        component={CheckinEditarScreen}
+        options={{ headerShown: true, title: 'Editar check-in' }}
+      />
+      <AppStack.Screen
+        name="PasseioEditar"
+        component={PasseioEditarScreen}
+        options={{ headerShown: true, title: 'Editar passeio' }}
+      />
+      <AppStack.Screen
+        name="AlertaForm"
+        component={AlertaFormScreen}
+        options={{ headerShown: true, title: 'Alerta' }}
+      />
+    </AppStack.Navigator>
+  );
+}
+
 export default function AppNavigator() {
-  const [carregando, setCarregando] = useState(true);
-  const jaUsouApp = useRef(false);
-
-  async function irParaLogin() {
-    await Storage.encerrarSessao();
-    if (navigationRef.isReady()) {
-      navigationRef.reset({ index: 0, routes: [{ name: 'Login' }] });
-    }
-  }
-
-  useEffect(() => {
-    (async () => {
-      await Storage.encerrarSessao();
-      setCarregando(false);
-    })();
-  }, []);
-
-  useEffect(() => {
-    const sub = AppState.addEventListener('change', (estado) => {
-      if (viaQr) return;
-      if (!jaUsouApp.current) return;
-      if (estado === 'background') {
-        void Storage.encerrarSessao();
-      }
-      if (estado === 'active') {
-        void (async () => {
-          if (!(await Storage.isLogado())) await irParaLogin();
-        })();
-      }
-    });
-    return () => sub.remove();
-  }, []);
+  const { usuario, carregando } = useAuth();
 
   if (carregando) {
     return (
       <View style={styles.loading}>
         <LogoSolin largura={200} />
         <ActivityIndicator size="large" color="#fff" style={styles.loadingSpinner} />
-        <Text style={styles.loadingTxt}>Carregando...</Text>
+        <Text style={styles.loadingTxt}>Carregando sessao...</Text>
       </View>
     );
   }
 
   return (
     <NavigationContainer ref={navigationRef}>
-      <Stack.Navigator
-        initialRouteName="Login"
-        screenOptions={{
-          headerStyle: { backgroundColor: theme.cores.verde },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: '700', fontSize: 17 },
-          contentStyle: { backgroundColor: theme.cores.fundo },
-        }}
-      >
-        <Stack.Screen name="Login" options={{ headerShown: false }}>
-          {(props) => (
-            <LoginScreen
-              {...props}
-              onLogado={async () => {
-                jaUsouApp.current = true;
-                await navegarAposLogin(props.navigation);
-              }}
-            />
-          )}
-        </Stack.Screen>
-
-        <Stack.Screen name="CadastroPet" options={{ headerShown: false }}>
-          {(props) => (
-            <CadastroPetScreen
-              {...props}
-              onSalvo={() => {
-                props.navigation.reset({
-                  index: 0,
-                  routes: [{ name: 'MainTabs', params: { screen: 'Inicio' } }],
-                });
-              }}
-            />
-          )}
-        </Stack.Screen>
-
-        <Stack.Screen name="MainTabs" options={{ headerShown: false }} component={AbasPrincipais} />
-
-        <Stack.Screen
-          name="Orientacao"
-          component={OrientacaoScreen}
-          options={{ title: 'Orientacao do dia' }}
-        />
-      </Stack.Navigator>
+      {usuario ? <RotasProtegidas /> : <RotasPublicas />}
     </NavigationContainer>
   );
 }

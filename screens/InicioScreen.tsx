@@ -1,73 +1,85 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
-import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useCallback, useState } from 'react';
-import {
-  Image,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Image, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AcaoCard } from '../components/AcaoCard';
 import { Card } from '../components/Card';
+import { EstadoCarregando } from '../components/EstadoCarregando';
+import { EstadoErro } from '../components/EstadoErro';
 import { ResumoDiaCard } from '../components/ResumoDiaCard';
-import { TituloSecao } from '../components/TituloSecao';
 import { TelaLayout } from '../components/TelaLayout';
+import { TituloSecao } from '../components/TituloSecao';
 import { theme } from '../constants/theme';
-import { Storage, type EventoIot, type Pet, type Streak, type Tutor } from '../lib/storage';
-import { sairDoApp } from '../navigation/ref';
-import type { RootStackParamList, TabParamList } from '../navigation/types';
+import { useAuth } from '../contexts/AuthContext';
+import { useCheckins } from '../hooks/useCheckins';
+import { useEventosIot } from '../hooks/useEventosIot';
+import { usePets } from '../hooks/usePets';
+import type { AppStackParamList, TabParamList } from '../navigation/types';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'Inicio'>,
-  NativeStackScreenProps<RootStackParamList>
+  NativeStackScreenProps<AppStackParamList>
 >;
+
+function mesmoDia(iso: string) {
+  const hoje = new Date().toISOString().slice(0, 10);
+  return iso.slice(0, 10) === hoje;
+}
+
+function calcularStreak(datas: string[]) {
+  const dias = new Set(datas.map((d) => d.slice(0, 10)));
+  let streak = 0;
+  const cursor = new Date();
+  while (dias.has(cursor.toISOString().slice(0, 10))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  if (streak === 0) {
+    cursor.setDate(cursor.getDate() - 1);
+    while (dias.has(cursor.toISOString().slice(0, 10))) {
+      streak += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+  }
+  return streak;
+}
 
 export default function InicioScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const [tutor, setTutor] = useState<Tutor | null>(null);
-  const [pet, setPet] = useState<Pet | null>(null);
-  const [streak, setStreak] = useState<Streak>({ dias: 0, ultimaData: '' });
-  const [fezHoje, setFezHoje] = useState(false);
-  const [eventosIot, setEventosIot] = useState<EventoIot[]>([]);
-  const [refresh, setRefresh] = useState(false);
+  const { usuario, sair } = useAuth();
+  const petsQuery = usePets();
+  const checkinsQuery = useCheckins();
+  const iotQuery = useEventosIot();
 
-  const carregar = useCallback(async () => {
-    setTutor(await Storage.getTutor());
-    setPet(await Storage.getPet());
-    setStreak(await Storage.getStreak());
-    setFezHoje(await Storage.fezCheckinHoje());
-    setEventosIot(await Storage.getEventosIot());
-  }, []);
+  const carregando = petsQuery.isLoading || checkinsQuery.isLoading || iotQuery.isLoading;
+  const erro = petsQuery.isError || checkinsQuery.isError || iotQuery.isError;
+  const pet = petsQuery.data?.[0];
+  const checkins = checkinsQuery.data ?? [];
+  const fezHoje = checkins.some((c) => mesmoDia(c.data));
+  const streak = calcularStreak(checkins.map((c) => c.data));
+  const ultimoIot = iotQuery.data?.[0];
+  const primeiroNome = usuario?.nome?.split(/\s+/)[0] || 'tutor';
 
-  useFocusEffect(useCallback(() => { carregar(); }, [carregar]));
-
-  const primeiroNome = tutor?.nome?.trim().split(/\s+/)[0] || 'tutor';
-  const ultimoIot = eventosIot[0];
+  async function atualizar() {
+    await Promise.all([petsQuery.refetch(), checkinsQuery.refetch(), iotQuery.refetch()]);
+  }
 
   return (
     <TelaLayout
       semPadding
       refreshControl={
         <RefreshControl
-          refreshing={refresh}
-          onRefresh={async () => {
-            setRefresh(true);
-            await carregar();
-            setRefresh(false);
-          }}
+          refreshing={petsQuery.isRefetching || checkinsQuery.isRefetching}
+          onRefresh={() => void atualizar()}
         />
       }
     >
       <View style={[styles.hero, { paddingTop: insets.top + theme.espaco.sm }]}>
         <View style={styles.heroTopo}>
           <View style={styles.heroEspaco} />
-          <Pressable style={styles.sair} onPress={() => void sairDoApp()} hitSlop={8}>
+          <Pressable style={styles.sair} onPress={() => void sair()} hitSlop={8}>
             <Text style={styles.sairTxt}>Sair</Text>
           </Pressable>
         </View>
@@ -80,7 +92,16 @@ export default function InicioScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.corpo}>
-        {!pet ? (
+        {carregando ? <EstadoCarregando texto="Buscando dados da API..." /> : null}
+        {erro ? (
+          <EstadoErro
+            onTentar={() => {
+              void atualizar();
+            }}
+          />
+        ) : null}
+
+        {!carregando && !erro && !pet ? (
           <Pressable onPress={() => navigation.navigate('MeuPet')}>
             <Card destaque style={styles.semPet}>
               <Ionicons name="paw" size={36} color={theme.cores.verde} />
@@ -91,7 +112,9 @@ export default function InicioScreen({ navigation }: Props) {
               </Text>
             </Card>
           </Pressable>
-        ) : (
+        ) : null}
+
+        {pet ? (
           <Pressable onPress={() => navigation.navigate('MeuPet')}>
             <Card style={styles.petCard}>
               <View style={styles.petRow}>
@@ -108,27 +131,22 @@ export default function InicioScreen({ navigation }: Props) {
                     {pet.especie} · {pet.raca} · {pet.peso !== '-' ? `${pet.peso} kg` : 'peso nao informado'}
                   </Text>
                   {pet.idade ? <Text style={styles.petExtra}>{pet.idade}</Text> : null}
-                  {pet.caracteristicas ? (
-                    <Text style={styles.petExtra} numberOfLines={2}>
-                      {pet.caracteristicas}
-                    </Text>
-                  ) : null}
                 </View>
                 <Ionicons name="create-outline" size={22} color={theme.cores.verde} />
               </View>
-              <Text style={styles.editarHint}>Toque para editar os dados do pet</Text>
+              <Text style={styles.editarHint}>Toque para gerenciar os pets</Text>
             </Card>
           </Pressable>
-        )}
+        ) : null}
 
         <TituloSecao titulo="Resumo de hoje" dica="Status da sua rotina diaria" />
 
         <ResumoDiaCard
           icone="flame"
           titulo="Sequencia de check-ins"
-          valor={`${streak.dias} ${streak.dias === 1 ? 'dia' : 'dias'}`}
+          valor={`${streak} ${streak === 1 ? 'dia' : 'dias'}`}
           descricao={
-            streak.dias > 0
+            streak > 0
               ? 'Dias seguidos registrando como seu pet esta'
               : 'Faca o primeiro check-in para comecar a sequencia'
           }
@@ -151,7 +169,6 @@ export default function InicioScreen({ navigation }: Props) {
         />
 
         <TituloSecao titulo="Acoes rapidas" dica="Toque para registrar" />
-
         <AcaoCard
           principal
           titulo="Check-in de hoje"
@@ -180,7 +197,7 @@ export default function InicioScreen({ navigation }: Props) {
           onPress={() => navigation.navigate('Historico')}
         />
 
-        {ultimoIot && (
+        {ultimoIot ? (
           <>
             <TituloSecao titulo="Sensor urinario" dica="Caixa de areia / tapete" />
             <Card>
@@ -189,12 +206,10 @@ export default function InicioScreen({ navigation }: Props) {
                 <Text style={styles.iotTitulo}>Ultimo evento PIR</Text>
               </View>
               <Text style={styles.iotMsg}>{ultimoIot.mensagem}</Text>
-              <Text style={styles.iotData}>
-                {new Date(ultimoIot.data).toLocaleString('pt-BR')}
-              </Text>
+              <Text style={styles.iotData}>{new Date(ultimoIot.data).toLocaleString('pt-BR')}</Text>
             </Card>
           </>
-        )}
+        ) : null}
       </View>
     </TelaLayout>
   );

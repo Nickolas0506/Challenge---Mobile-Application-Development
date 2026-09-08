@@ -50,6 +50,5 @@ const styles = StyleSheet.create({
   inputWeb: {
     outlineStyle: 'solid',
     outlineWidth: 0,
-    cursor: 'text',
-  } as const,
+  },
 });

@@ -18,20 +18,27 @@ import { LogoSolin } from '../components/LogoSolin';
 import { theme } from '../constants/theme';
 import { firebaseConfigurado } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { validarEmail, validarSenha } from '../lib/validacao';
+import { validarEmail, validarNome, validarSenha } from '../lib/validacao';
 import type { AuthStackParamList } from '../navigation/types';
 
-type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
+type Props = NativeStackScreenProps<AuthStackParamList, 'Cadastro'>;
 
-export default function LoginScreen({ navigation }: Props) {
-  const { entrar } = useAuth();
+export default function CadastroScreen({ navigation }: Props) {
+  const { cadastrar } = useAuth();
+  const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [confirmar, setConfirmar] = useState('');
   const [erro, setErro] = useState('');
   const [salvando, setSalvando] = useState(false);
 
   async function enviar() {
     setErro('');
+    const erroNome = validarNome(nome);
+    if (erroNome) {
+      setErro(erroNome);
+      return;
+    }
     const erroEmail = validarEmail(email);
     if (erroEmail) {
       setErro(erroEmail);
@@ -42,12 +49,16 @@ export default function LoginScreen({ navigation }: Props) {
       setErro(erroSenha);
       return;
     }
+    if (senha !== confirmar) {
+      setErro('As senhas nao coincidem.');
+      return;
+    }
 
     setSalvando(true);
     try {
-      await entrar(email.trim().toLowerCase(), senha);
+      await cadastrar(nome.trim(), email.trim().toLowerCase(), senha);
     } catch (e) {
-      setErro(e instanceof Error ? e.message : 'Nao foi possivel entrar.');
+      setErro(e instanceof Error ? e.message : 'Nao foi possivel cadastrar.');
     } finally {
       setSalvando(false);
     }
@@ -66,20 +77,21 @@ export default function LoginScreen({ navigation }: Props) {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.topo}>
-            <LogoSolin largura={250} />
+            <LogoSolin largura={200} />
           </View>
 
           <View style={styles.formArea}>
             <Card style={styles.card}>
-              <Text style={styles.titulo}>Bem-vindo</Text>
-              <Text style={styles.sub}>Entre para acompanhar a rotina do seu pet</Text>
+              <Text style={styles.titulo}>Criar conta</Text>
+              <Text style={styles.sub}>Cadastre-se para proteger a rotina do seu pet</Text>
 
               {!firebaseConfigurado() ? (
                 <Text style={styles.erro}>
-                  Configure o Firebase no arquivo .env (veja o README) para o login funcionar.
+                  Configure o Firebase no arquivo .env (veja o README) para o cadastro funcionar.
                 </Text>
               ) : null}
 
+              <Campo label="Seu nome *" value={nome} onChange={setNome} placeholder="Seu nome" />
               <Campo
                 label="E-mail *"
                 value={email}
@@ -87,18 +99,22 @@ export default function LoginScreen({ navigation }: Props) {
                 placeholder="seunome@gmail.com"
                 teclado="email-address"
               />
-              <Campo label="Senha *" value={senha} onChange={setSenha} placeholder="******" seguro />
+              <Campo label="Senha *" value={senha} onChange={setSenha} placeholder="Minimo 6 caracteres" seguro />
+              <Campo
+                label="Confirmar senha *"
+                value={confirmar}
+                onChange={setConfirmar}
+                placeholder="Repita a senha"
+                seguro
+              />
 
               {erro ? <Text style={styles.erro}>{erro}</Text> : null}
 
-              <Botao texto="Entrar" onPress={enviar} carregando={salvando} />
+              <Botao texto="Cadastrar" onPress={enviar} carregando={salvando} />
 
-              <Pressable
-                style={styles.linkBox}
-                onPress={() => navigation.navigate('Cadastro')}
-              >
+              <Pressable style={styles.linkBox} onPress={() => navigation.navigate('Login')}>
                 <Text style={styles.link}>
-                  Nao tem conta? <Text style={styles.linkForte}>Cadastre-se</Text>
+                  Ja tem conta? <Text style={styles.linkForte}>Entrar</Text>
                 </Text>
               </Pressable>
             </Card>

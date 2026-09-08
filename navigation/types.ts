@@ -1,11 +1,9 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
-import type { HumorCheckin } from '../lib/storage';
+import type { HumorCheckin } from '../types/models';
 
-export type RootStackParamList = {
+export type AuthStackParamList = {
   Login: undefined;
-  CadastroPet: undefined;
-  MainTabs: NavigatorScreenParams<TabParamList> | undefined;
-  Orientacao: { humor: HumorCheckin; pet: string };
+  Cadastro: undefined;
 };
 
 export type TabParamList = {
@@ -16,3 +14,14 @@ export type TabParamList = {
   Historico: undefined;
   Alertas: undefined;
 };
+
+export type AppStackParamList = {
+  MainTabs: NavigatorScreenParams<TabParamList> | undefined;
+  Orientacao: { humor: HumorCheckin; pet: string };
+  PetForm: { petId?: string } | undefined;
+  CheckinEditar: { checkinId: string };
+  PasseioEditar: { passeioId: string };
+  AlertaForm: { alertaId?: string } | undefined;
+};
+
+export type RootStackParamList = AuthStackParamList & AppStackParamList;

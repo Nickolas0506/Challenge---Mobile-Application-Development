@@ -6,14 +6,16 @@ type Props = {
   onPress: () => void | Promise<void>;
   carregando?: boolean;
   secundario?: boolean;
+  perigo?: boolean;
 };
 
-export function Botao({ texto, onPress, carregando, secundario }: Props) {
+export function Botao({ texto, onPress, carregando, secundario, perigo }: Props) {
   return (
     <TouchableOpacity
       style={[
         styles.btn,
         secundario && styles.btnSec,
+        perigo && styles.btnPerigo,
         carregando && styles.btnDisabled,
         Platform.OS === 'web' && styles.btnWeb,
       ]}
@@ -27,7 +29,7 @@ export function Botao({ texto, onPress, carregando, secundario }: Props) {
       {carregando ? (
         <ActivityIndicator color={secundario ? theme.cores.verde : '#fff'} />
       ) : (
-        <Text style={[styles.txt, secundario && styles.txtSec]}>{texto}</Text>
+        <Text style={[styles.txt, secundario && styles.txtSec, perigo && styles.txtPerigo]}>{texto}</Text>
       )}
     </TouchableOpacity>
   );
@@ -52,6 +54,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     elevation: 0,
   },
+  btnPerigo: {
+    backgroundColor: theme.cores.branco,
+    borderWidth: 1.5,
+    borderColor: theme.cores.vermelho,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  txtPerigo: { color: theme.cores.vermelho },
   btnDisabled: { opacity: 0.7 },
   btnWeb: { cursor: 'pointer' as const },
   txt: { color: '#fff', fontWeight: '700', fontSize: 16 },

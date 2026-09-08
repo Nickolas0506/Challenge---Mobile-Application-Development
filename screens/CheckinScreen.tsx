@@ -1,5 +1,5 @@
-import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -7,9 +7,10 @@ import { CabecalhoTela } from '../components/CabecalhoTela';
 import { Card } from '../components/Card';
 import { TelaLayout } from '../components/TelaLayout';
 import { theme } from '../constants/theme';
-import type { HumorCheckin } from '../lib/storage';
-import { Storage } from '../lib/storage';
-import type { RootStackParamList, TabParamList } from '../navigation/types';
+import { useCriarCheckin } from '../hooks/useCheckins';
+import { usePets } from '../hooks/usePets';
+import type { AppStackParamList, TabParamList } from '../navigation/types';
+import type { HumorCheckin } from '../types/models';
 
 const HUMORES: { valor: HumorCheckin; emoji: string; label: string; cor: string }[] = [
   { valor: 'otimo', emoji: '😄', label: 'Otimo', cor: '#2A9D8F' },
@@ -20,41 +21,39 @@ const HUMORES: { valor: HumorCheckin; emoji: string; label: string; cor: string 
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'Checkin'>,
-  NativeStackScreenProps<RootStackParamList>
+  NativeStackScreenProps<AppStackParamList>
 >;
 
 export default function CheckinScreen({ navigation }: Props) {
+  const { data: pets } = usePets();
+  const criar = useCriarCheckin();
   const [selecionado, setSelecionado] = useState<HumorCheckin | null>(null);
   const [obs, setObs] = useState('');
-  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState('');
 
   async function registrar(humor: HumorCheckin) {
     setSelecionado(humor);
-    setSalvando(true);
-
-    const pet = await Storage.getPet();
-    await Storage.addCheckin({
-      id: String(Date.now()),
-      data: new Date().toISOString(),
-      humor,
-      observacao: obs.trim() || undefined,
-    });
-    await Storage.atualizarStreak();
-
-    const alertas = await Storage.getAlertas();
-    await Storage.setAlertas(
-      alertas.map((a) => (a.tipo === 'checkin' ? { ...a, lido: true } : a))
-    );
-
-    setSalvando(false);
-    navigation.navigate('Orientacao', { humor, pet: pet?.nome ?? 'seu pet' });
+    setErro('');
+    const pet = pets?.[0];
+    try {
+      await criar.mutateAsync({
+        petId: pet?.id,
+        data: new Date().toISOString(),
+        humor,
+        observacao: obs.trim() || undefined,
+      });
+      setObs('');
+      navigation.navigate('Orientacao', { humor, pet: pet?.nome ?? 'seu pet' });
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Nao foi possivel salvar o check-in.');
+    }
   }
 
   return (
     <TelaLayout semPadding keyboardShouldPersistTaps="handled">
       <CabecalhoTela
         titulo="Check-in"
-        subtitulo="Toque no humor do seu pet. Leva menos de 10 segundos."
+        subtitulo="Toque no humor do seu pet. O registro vai para a API."
         onVoltarInicio={() => navigation.navigate('Inicio')}
       />
 
@@ -66,10 +65,10 @@ export default function CheckinScreen({ navigation }: Props) {
               styles.humorBtn,
               selecionado === h.valor && { borderColor: h.cor, backgroundColor: theme.cores.verdeClaro },
             ]}
-            onPress={() => registrar(h.valor)}
-            disabled={salvando}
+            onPress={() => void registrar(h.valor)}
+            disabled={criar.isPending}
           >
-            {salvando && selecionado === h.valor ? (
+            {criar.isPending && selecionado === h.valor ? (
               <ActivityIndicator color={h.cor} />
             ) : (
               <>
@@ -91,10 +90,9 @@ export default function CheckinScreen({ navigation }: Props) {
             placeholder="Ex: comeu bem, brincou..."
             placeholderTextColor={theme.cores.textoClaro}
             multiline
-            editable
           />
         </Card>
-
+        {erro ? <Text style={styles.erro}>{erro}</Text> : null}
         <Text style={styles.aviso}>
           Nao e diagnostico. Voce vera uma orientacao simples apos salvar.
         </Text>
@@ -134,6 +132,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     color: theme.cores.texto,
   },
+  erro: { marginTop: 12, color: theme.cores.vermelho, fontWeight: '600' },
   aviso: {
     marginTop: theme.espaco.md,
     fontSize: 13,

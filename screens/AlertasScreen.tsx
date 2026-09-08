@@ -1,20 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import { useCallback, useState } from 'react';
-import {
-  FlatList,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { Botao } from '../components/Botao';
 import { CabecalhoTela } from '../components/CabecalhoTela';
 import { Card } from '../components/Card';
+import { EstadoCarregando } from '../components/EstadoCarregando';
+import { EstadoErro } from '../components/EstadoErro';
 import { theme } from '../constants/theme';
-import { Storage, type Alerta } from '../lib/storage';
-import type { TabParamList } from '../navigation/types';
+import { alertaParaInput, useAlertas, useAtualizarAlerta, useRemoverAlerta } from '../hooks/useAlertas';
+import { useCriarEventoIot } from '../hooks/useEventosIot';
+import type { AppStackParamList, TabParamList } from '../navigation/types';
+import type { Alerta } from '../types/models';
 
 const TIPO_CONFIG: Record<Alerta['tipo'], { label: string; icone: keyof typeof Ionicons.glyphMap }> = {
   checkin: { label: 'Rotina', icone: 'calendar' },
@@ -23,24 +21,45 @@ const TIPO_CONFIG: Record<Alerta['tipo'], { label: string; icone: keyof typeof I
   passeio: { label: 'Passeio', icone: 'walk' },
 };
 
-export default function AlertasScreen() {
-  const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
-  const [alertas, setAlertas] = useState<Alerta[]>([]);
-  const [refresh, setRefresh] = useState(false);
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<TabParamList, 'Alertas'>,
+  NativeStackScreenProps<AppStackParamList>
+>;
 
-  const carregar = useCallback(async () => {
-    setAlertas(await Storage.getAlertas());
-  }, []);
+export default function AlertasScreen({ navigation }: Props) {
+  const { data: alertas, isLoading, isError, refetch, isRefetching } = useAlertas();
+  const atualizar = useAtualizarAlerta();
+  const remover = useRemoverAlerta();
+  const criarIot = useCriarEventoIot();
 
-  useFocusEffect(useCallback(() => { carregar(); }, [carregar]));
+  const pendentes = (alertas ?? []).filter((a) => !a.lido).length;
 
-  async function marcarLido(id: string) {
-    const lista = alertas.map((a) => (a.id === id ? { ...a, lido: true } : a));
-    await Storage.setAlertas(lista);
-    setAlertas(lista);
+  function marcarLido(item: Alerta) {
+    if (item.lido) return;
+    atualizar.mutate({
+      id: item.id,
+      dados: { ...alertaParaInput(item), lido: true },
+    });
   }
 
-  const pendentes = alertas.filter((a) => !a.lido).length;
+  function excluir(item: Alerta) {
+    Alert.alert('Excluir alerta', `Remover "${item.titulo}" da API?`, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Excluir', style: 'destructive', onPress: () => remover.mutate(item.id) },
+    ]);
+  }
+
+  async function registrarSensor() {
+    try {
+      await criarIot.mutateAsync({
+        data: new Date().toISOString(),
+        tipo: 'uso_normal',
+        mensagem: 'Uso registrado na caixa de areia (sensor PIR)',
+      });
+    } catch (e) {
+      Alert.alert('Erro', e instanceof Error ? e.message : 'Falha ao registrar evento.');
+    }
+  }
 
   return (
     <View style={styles.fundo}>
@@ -54,22 +73,44 @@ export default function AlertasScreen() {
         onVoltarInicio={() => navigation.navigate('Inicio')}
       />
 
+      {isLoading ? <EstadoCarregando /> : null}
+      {isError ? (
+        <View style={styles.pad}>
+          <EstadoErro onTentar={() => void refetch()} />
+        </View>
+      ) : null}
+
       <FlatList
-        data={alertas}
+        data={alertas ?? []}
         keyExtractor={(a) => a.id}
         contentContainerStyle={styles.lista}
         refreshControl={
-          <RefreshControl refreshing={refresh} onRefresh={async () => {
-            setRefresh(true);
-            await carregar();
-            setRefresh(false);
-          }} />
+          <RefreshControl refreshing={isRefetching} onRefresh={() => void refetch()} />
+        }
+        ListHeaderComponent={
+          <View style={styles.topoAcoes}>
+            <Botao texto="Novo alerta" onPress={() => navigation.navigate('AlertaForm')} />
+            <Botao
+              texto="Registrar evento do sensor"
+              secundario
+              onPress={() => void registrarSensor()}
+              carregando={criarIot.isPending}
+            />
+          </View>
+        }
+        ListEmptyComponent={
+          !isLoading && !isError ? (
+            <Card>
+              <Text style={styles.vazio}>Nenhum alerta na API.</Text>
+              <Text style={styles.vazioSub}>Crie um lembrete para acompanhar a rotina.</Text>
+            </Card>
+          ) : null
         }
         renderItem={({ item }) => {
           const cfg = TIPO_CONFIG[item.tipo];
           return (
-            <Pressable onPress={() => !item.lido && marcarLido(item.id)}>
-              <Card style={[styles.card, !item.lido && styles.naoLido]}>
+            <Card style={[styles.card, !item.lido && styles.naoLido]}>
+              <Pressable onPress={() => marcarLido(item)}>
                 <View style={styles.row}>
                   <View style={[styles.iconeBox, !item.lido && styles.iconePendente]}>
                     <Ionicons name={cfg.icone} size={20} color={theme.cores.verde} />
@@ -81,8 +122,16 @@ export default function AlertasScreen() {
                   </View>
                   {!item.lido && <View style={styles.bolinha} />}
                 </View>
-              </Card>
-            </Pressable>
+              </Pressable>
+              <View style={styles.acoes}>
+                <Pressable onPress={() => navigation.navigate('AlertaForm', { alertaId: item.id })}>
+                  <Text style={styles.link}>Editar</Text>
+                </Pressable>
+                <Pressable onPress={() => excluir(item)}>
+                  <Text style={styles.linkExcluir}>Excluir</Text>
+                </Pressable>
+              </View>
+            </Card>
           );
         }}
       />
@@ -92,7 +141,9 @@ export default function AlertasScreen() {
 
 const styles = StyleSheet.create({
   fundo: { flex: 1, backgroundColor: theme.cores.fundo },
+  pad: { paddingHorizontal: theme.espaco.md },
   lista: { padding: theme.espaco.md, paddingBottom: theme.espaco.xl },
+  topoAcoes: { marginBottom: theme.espaco.md },
   card: { marginBottom: theme.espaco.sm },
   naoLido: { borderWidth: 2, borderColor: theme.cores.verde },
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: theme.espaco.sm },
@@ -115,4 +166,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.cores.vermelho,
     marginTop: 6,
   },
+  acoes: { flexDirection: 'row', gap: theme.espaco.lg, marginTop: theme.espaco.sm },
+  link: { color: theme.cores.verde, fontWeight: '700' },
+  linkExcluir: { color: theme.cores.vermelho, fontWeight: '700' },
+  vazio: { fontWeight: '700', fontSize: 16, textAlign: 'center' },
+  vazioSub: { textAlign: 'center', color: theme.cores.textoClaro, marginTop: 8 },
 });

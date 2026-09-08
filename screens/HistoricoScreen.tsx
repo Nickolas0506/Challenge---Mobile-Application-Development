@@ -1,25 +1,24 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import { useCallback, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { CabecalhoTela } from '../components/CabecalhoTela';
 import { Card } from '../components/Card';
+import { EstadoCarregando } from '../components/EstadoCarregando';
+import { EstadoErro } from '../components/EstadoErro';
 import { theme } from '../constants/theme';
-import {
-  Storage,
-  type Checkin,
-  type EventoIot,
-  type Passeio,
-  type RegistroPetHistorico,
-} from '../lib/storage';
-import type { TabParamList } from '../navigation/types';
+import { useCheckins } from '../hooks/useCheckins';
+import { useEventosIot } from '../hooks/useEventosIot';
+import { usePasseios } from '../hooks/usePasseios';
+import { usePets } from '../hooks/usePets';
+import type { AppStackParamList, TabParamList } from '../navigation/types';
 
 type ItemHistorico =
-  | { tipo: 'pet'; data: string; id: string; registro: RegistroPetHistorico }
-  | { tipo: 'checkin'; data: string; id: string; checkin: Checkin }
-  | { tipo: 'passeio'; data: string; id: string; passeio: Passeio }
-  | { tipo: 'iot'; data: string; id: string; evento: EventoIot };
+  | { tipo: 'pet'; data: string; id: string; titulo: string; detalhe: string }
+  | { tipo: 'checkin'; data: string; id: string; titulo: string; detalhe: string }
+  | { tipo: 'passeio'; data: string; id: string; titulo: string; detalhe: string }
+  | { tipo: 'iot'; data: string; id: string; titulo: string; detalhe: string };
 
 const ICONES = {
   pet: 'paw' as const,
@@ -44,104 +43,121 @@ function formatarData(iso: string) {
   });
 }
 
-export default function HistoricoScreen() {
-  const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
-  const [itens, setItens] = useState<ItemHistorico[]>([]);
-  const [refresh, setRefresh] = useState(false);
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<TabParamList, 'Historico'>,
+  NativeStackScreenProps<AppStackParamList>
+>;
 
-  const carregar = useCallback(async () => {
-    const [registrosPet, checkins, passeios, iot] = await Promise.all([
-      Storage.getRegistrosPetHistorico(),
-      Storage.getCheckins(),
-      Storage.getPasseios(),
-      Storage.getEventosIot(),
+export default function HistoricoScreen({ navigation }: Props) {
+  const petsQuery = usePets();
+  const checkinsQuery = useCheckins();
+  const passeiosQuery = usePasseios();
+  const iotQuery = useEventosIot();
+
+  const carregando =
+    petsQuery.isLoading || checkinsQuery.isLoading || passeiosQuery.isLoading || iotQuery.isLoading;
+  const erro = petsQuery.isError || checkinsQuery.isError || passeiosQuery.isError || iotQuery.isError;
+
+  const itens: ItemHistorico[] = [
+    ...(petsQuery.data ?? []).map((p) => ({
+      tipo: 'pet' as const,
+      data: p.createdAt ?? new Date().toISOString(),
+      id: p.id,
+      titulo: p.nome,
+      detalhe: [p.especie, p.raca, p.peso !== '-' ? `${p.peso} kg` : null, p.idade]
+        .filter(Boolean)
+        .join(' · '),
+    })),
+    ...(checkinsQuery.data ?? []).map((c) => ({
+      tipo: 'checkin' as const,
+      data: c.data,
+      id: c.id,
+      titulo: 'Check-in',
+      detalhe: `Humor: ${c.humor}${c.observacao ? ` — ${c.observacao}` : ''}`,
+    })),
+    ...(passeiosQuery.data ?? []).map((p) => ({
+      tipo: 'passeio' as const,
+      data: p.data,
+      id: p.id,
+      titulo: 'Passeio',
+      detalhe: `${p.duracaoMin} min · Agua: ${p.bebeuAgua ? 'sim' : 'nao'} · Urina: ${
+        p.urinou ? (p.urinaNormal ? 'ok' : 'alterada') : 'nao'
+      }`,
+    })),
+    ...(iotQuery.data ?? []).map((e) => ({
+      tipo: 'iot' as const,
+      data: e.data,
+      id: e.id,
+      titulo: 'Sensor',
+      detalhe: e.mensagem,
+    })),
+  ].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+
+  function abrir(item: ItemHistorico) {
+    if (item.tipo === 'checkin') navigation.navigate('CheckinEditar', { checkinId: item.id });
+    if (item.tipo === 'passeio') navigation.navigate('PasseioEditar', { passeioId: item.id });
+    if (item.tipo === 'pet') navigation.navigate('PetForm', { petId: item.id });
+  }
+
+  async function atualizar() {
+    await Promise.all([
+      petsQuery.refetch(),
+      checkinsQuery.refetch(),
+      passeiosQuery.refetch(),
+      iotQuery.refetch(),
     ]);
-    const lista: ItemHistorico[] = [
-      ...registrosPet.map((r) => ({
-        tipo: 'pet' as const,
-        data: r.data,
-        id: r.id,
-        registro: r,
-      })),
-      ...checkins.map((c) => ({ tipo: 'checkin' as const, data: c.data, id: c.id, checkin: c })),
-      ...passeios.map((p) => ({ tipo: 'passeio' as const, data: p.data, id: p.id, passeio: p })),
-      ...iot.map((e) => ({ tipo: 'iot' as const, data: e.data, id: e.id, evento: e })),
-    ];
-    lista.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
-    setItens(lista);
-  }, []);
-
-  useFocusEffect(useCallback(() => { carregar(); }, [carregar]));
+  }
 
   return (
     <View style={styles.fundo}>
       <CabecalhoTela
         titulo="Historico"
-        subtitulo="Cadastro do pet, check-ins, passeios e sensor"
+        subtitulo="Dados da API — toque em check-in ou passeio para editar/excluir"
         onVoltarInicio={() => navigation.navigate('Inicio')}
       />
+
+      {carregando ? <EstadoCarregando /> : null}
+      {erro ? (
+        <View style={styles.pad}>
+          <EstadoErro onTentar={() => void atualizar()} />
+        </View>
+      ) : null}
 
       <FlatList
         data={itens}
         keyExtractor={(item) => `${item.tipo}-${item.id}`}
         contentContainerStyle={styles.lista}
         refreshControl={
-          <RefreshControl
-            refreshing={refresh}
-            onRefresh={async () => {
-              setRefresh(true);
-              await carregar();
-              setRefresh(false);
-            }}
-          />
+          <RefreshControl refreshing={checkinsQuery.isRefetching} onRefresh={() => void atualizar()} />
         }
         ListEmptyComponent={
-          <Card>
-            <Text style={styles.vazio}>Nenhum registro ainda.</Text>
-            <Text style={styles.vazioSub}>
-              Cadastre o pet em Meu Pet, faca check-in ou registre um passeio.
-            </Text>
-          </Card>
+          !carregando && !erro ? (
+            <Card>
+              <Text style={styles.vazio}>Nenhum registro ainda.</Text>
+              <Text style={styles.vazioSub}>
+                Cadastre o pet, faca check-in ou registre um passeio.
+              </Text>
+            </Card>
+          ) : null
         }
         renderItem={({ item }) => (
-          <Card style={styles.item}>
-            <View style={styles.itemHeader}>
-              <View style={styles.iconeBox}>
-                <Ionicons name={ICONES[item.tipo]} size={18} color={theme.cores.verde} />
+          <Pressable onPress={() => abrir(item)} disabled={item.tipo === 'iot'}>
+            <Card style={styles.item}>
+              <View style={styles.itemHeader}>
+                <View style={styles.iconeBox}>
+                  <Ionicons name={ICONES[item.tipo]} size={18} color={theme.cores.verde} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.itemTipo}>{LABELS[item.tipo]}</Text>
+                  <Text style={styles.itemData}>{formatarData(item.data)}</Text>
+                </View>
+                {item.tipo !== 'iot' ? (
+                  <Ionicons name="chevron-forward" size={18} color={theme.cores.textoClaro} />
+                ) : null}
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.itemTipo}>{LABELS[item.tipo]}</Text>
-                <Text style={styles.itemData}>{formatarData(item.data)}</Text>
-              </View>
-            </View>
-            {item.tipo === 'pet' && (
-              <Text style={styles.itemDetalhe}>
-                {item.registro.acao === 'cadastro' ? 'Cadastro' : 'Alteracao'}:{' '}
-                <Text style={{ fontWeight: '700' }}>{item.registro.nomePet}</Text>
-                {' — '}
-                {item.registro.detalhe}
-              </Text>
-            )}
-            {item.tipo === 'checkin' && (
-              <Text style={styles.itemDetalhe}>Humor: {item.checkin.humor}</Text>
-            )}
-            {item.tipo === 'passeio' && (
-              <Text style={styles.itemDetalhe}>
-                {item.passeio.duracaoMin} min · Agua: {item.passeio.bebeuAgua ? 'sim' : 'nao'}
-                {' · '}
-                {item.passeio.urinou === false
-                  ? 'Sem urina'
-                  : `Urina: ${item.passeio.urinaNormal !== false ? 'ok' : 'alterada'}`}
-                {' · Fezes: '}
-                {item.passeio.fezesNormais ? 'ok' : 'alteradas'}
-                {' · Comportamento: '}
-                {item.passeio.comportamentoNormal !== false ? 'normal' : 'alterado'}
-              </Text>
-            )}
-            {item.tipo === 'iot' && (
-              <Text style={styles.itemDetalhe}>{item.evento.mensagem}</Text>
-            )}
-          </Card>
+              <Text style={styles.itemDetalhe}>{item.detalhe}</Text>
+            </Card>
+          </Pressable>
         )}
       />
     </View>
@@ -150,6 +166,7 @@ export default function HistoricoScreen() {
 
 const styles = StyleSheet.create({
   fundo: { flex: 1, backgroundColor: theme.cores.fundo },
+  pad: { paddingHorizontal: theme.espaco.md },
   lista: { padding: theme.espaco.md, paddingBottom: theme.espaco.xl },
   item: { marginBottom: theme.espaco.sm },
   itemHeader: { flexDirection: 'row', alignItems: 'center', gap: theme.espaco.sm },

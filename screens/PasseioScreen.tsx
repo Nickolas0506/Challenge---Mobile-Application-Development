@@ -1,15 +1,16 @@
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useState } from 'react';
-import { Alert, Platform, StyleSheet, Switch, Text, View } from 'react-native';
-import type { TabParamList } from '../navigation/types';
+import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
 import { Botao } from '../components/Botao';
 import { CabecalhoTela } from '../components/CabecalhoTela';
 import { Campo } from '../components/Campo';
 import { Card } from '../components/Card';
 import { TelaLayout } from '../components/TelaLayout';
 import { theme } from '../constants/theme';
-import { Storage } from '../lib/storage';
+import { useCriarPasseio } from '../hooks/usePasseios';
+import { usePets } from '../hooks/usePets';
+import type { TabParamList } from '../navigation/types';
 
 function simNao(valor: boolean) {
   return valor ? 'sim' : 'nao';
@@ -17,6 +18,8 @@ function simNao(valor: boolean) {
 
 export default function PasseioScreen() {
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
+  const { data: pets } = usePets();
+  const criar = useCriarPasseio();
   const [duracao, setDuracao] = useState('');
   const [agua, setAgua] = useState(true);
   const [urinou, setUrinou] = useState(true);
@@ -24,7 +27,6 @@ export default function PasseioScreen() {
   const [fezes, setFezes] = useState(true);
   const [comportamentoNormal, setComportamentoNormal] = useState(true);
   const [obs, setObs] = useState('');
-  const [salvando, setSalvando] = useState(false);
 
   function resetFormulario() {
     setDuracao('');
@@ -41,35 +43,33 @@ export default function PasseioScreen() {
       Alert.alert('Falta a duracao', 'Informe quantos minutos durou o passeio.');
       return;
     }
-    setSalvando(true);
-    await Storage.addPasseio({
-      id: String(Date.now()),
-      data: new Date().toISOString(),
-      duracaoMin: duracao.trim(),
-      bebeuAgua: agua,
-      urinou,
-      urinaNormal: urinou ? urinaNormal : false,
-      fezesNormais: fezes,
-      comportamentoNormal,
-      observacao: obs.trim(),
-    });
-    setSalvando(false);
-    const msg = 'Passeio registrado! Veja na aba Historico.';
-    if (Platform.OS === 'web') window.alert(msg);
-    else Alert.alert('Salvo', msg);
-    resetFormulario();
+    try {
+      await criar.mutateAsync({
+        petId: pets?.[0]?.id,
+        data: new Date().toISOString(),
+        duracaoMin: duracao.trim(),
+        bebeuAgua: agua,
+        urinou,
+        urinaNormal: urinou ? urinaNormal : false,
+        fezesNormais: fezes,
+        comportamentoNormal,
+        observacao: obs.trim(),
+      });
+      Alert.alert('Salvo', 'Passeio registrado na API. Veja na aba Historico.');
+      resetFormulario();
+    } catch (e) {
+      Alert.alert('Erro', e instanceof Error ? e.message : 'Falha ao salvar o passeio.');
+    }
   }
 
   const minutos = duracao.trim() || '—';
-  const resumoUrina = urinou
-    ? `Urina: ${urinaNormal ? 'normal' : 'alterada'}`
-    : 'Urina: nao urinou';
+  const resumoUrina = urinou ? `Urina: ${urinaNormal ? 'normal' : 'alterada'}` : 'Urina: nao urinou';
 
   return (
     <TelaLayout keyboardShouldPersistTaps="always">
       <CabecalhoTela
         titulo="Apos o passeio"
-        subtitulo="Registre agua, urina, fezes e se o comportamento foi normal."
+        subtitulo="Registre agua, urina, fezes e comportamento. Os dados vao para a API."
         onVoltarInicio={() => navigation.navigate('Inicio')}
       />
 
@@ -148,7 +148,7 @@ export default function PasseioScreen() {
         </Text>
       </Card>
 
-      <Botao texto="Salvar registro" onPress={salvar} carregando={salvando} />
+      <Botao texto="Salvar registro" onPress={() => void salvar()} carregando={criar.isPending} />
     </TelaLayout>
   );
 }

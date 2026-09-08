@@ -6,9 +6,9 @@ import { Card } from '../components/Card';
 import { TelaLayout } from '../components/TelaLayout';
 import { theme } from '../constants/theme';
 import { gerarOrientacao } from '../lib/orientacao';
-import type { RootStackParamList } from '../navigation/types';
+import type { AppStackParamList } from '../navigation/types';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Orientacao'>;
+type Props = NativeStackScreenProps<AppStackParamList, 'Orientacao'>;
 
 export default function OrientacaoScreen({ route, navigation }: Props) {
   const { humor, pet } = route.params;
