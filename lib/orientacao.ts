@@ -1,4 +1,4 @@
-import type { HumorCheckin } from './storage';
+import type { HumorCheckin } from '../types/models';
 
 // respostas imediatas sem diagnostico (regra simples pro mvp)
 // depois o grupo pode trocar por api de ia
