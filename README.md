@@ -2,14 +2,18 @@
 
 <p align="center">
   <strong>Challenge FIAP 2026 · Clyvo Vet</strong><br/>
-  <em>O cuidado que protege o seu pet</em>
+  <em>O cuidado que protege o seu pet · 3ª Sprint</em>
 </p>
 
 ---
 
-## Sobre o projeto
+## Problema
 
-O **SOLIN** é um protótipo mobile para tutores de pets, desenvolvido no contexto do desafio **Clyvo Vet**. O foco é criar **hábito de uso diário**: check-in rápido, orientação imediata (sem diagnóstico médico) e registro de rotina que pode alimentar o prontuário veterinário.
+Tutores de pets costumam perceber mudanças na rotina (apetite, urina, comportamento) tarde demais. Falta um hábito simples de registro diário que alimente o acompanhamento — inclusive com dados de sensor IoT na caixa de areia.
+
+## Solução
+
+O **SOLIN** é o aplicativo do tutor: check-in em poucos toques, registro pós-passeio, cadastro do pet, alertas e histórico. Nesta 3ª sprint o protótipo visual virou **base funcional**: autenticação real, API HTTP com CRUD e dados que atualizam sozinhos na interface.
 
 ---
 
@@ -23,28 +27,9 @@ O **SOLIN** é um protótipo mobile para tutores de pets, desenvolvido no contex
 | Otávio Ferreira | 565960 |
 | Rodrigo Carvalho | 565162 |
 
----
-
-## Repositório
-
 **GitHub:** [Challenge - Mobile Application Development](https://github.com/Nickolas0506/Challenge---Mobile-Application-Development)
 
-```text
-https://github.com/Nickolas0506/Challenge---Mobile-Application-Development.git
-```
-
----
-
-## Funcionalidades
-
-| Recurso | Descrição |
-|:--------|:----------|
-| Check-in diário | Registro em 1 toque com humor e observação |
-| Orientação | Resposta imediata após o check-in |
-| Passeio | Formulário pós-passeio (água, urina, fezes, comportamento) |
-| Meu pet | Cadastro e edição com foto opcional |
-| Histórico | Check-ins, passeios e eventos do sensor IoT |
-| Alertas | Lembretes de rotina, vacina e sensor urinário |
+**Vídeo da 3ª sprint (YouTube, até 5 min):** _incluir o link após a gravação_
 
 ---
 
@@ -52,116 +37,175 @@ https://github.com/Nickolas0506/Challenge---Mobile-Application-Development.git
 
 | Categoria | Ferramenta |
 |:----------|:-----------|
-| Framework | React Native + Expo (SDK 54) |
-| Navegação | React Navigation (Stack + Bottom Tabs) — sem Expo Router |
-| Armazenamento | AsyncStorage |
-| Linguagem | TypeScript |
+| App | React Native + Expo SDK 54 + TypeScript |
+| Navegação | React Navigation (Stack + Bottom Tabs) |
+| Dados HTTP | TanStack Query (`useQuery` / `useMutation`) |
+| API backend | json-server (REST: GET, POST, PUT, DELETE) |
+| Autenticação | Firebase Authentication (e-mail e senha) |
+| Persistência de sessão | Firebase Auth + AsyncStorage |
 
 ---
 
-## Como rodar
+## Como executar
 
 ### Pré-requisitos
 
-- [Node.js](https://nodejs.org/) instalado
-- App **Expo Go** no celular (ou emulador Android)
+- [Node.js](https://nodejs.org/) 18+
+- App **Expo Go** no celular (mesma Wi-Fi do PC) **ou** emulador
+- Projeto Firebase com **E-mail/senha** ligado (passos abaixo)
 
-### Passos
+### 1. Instalar
 
 ```bash
-cd solin-mobile
+cd app
 npm install
-npm run web          # navegador (PC)
-npm run celular      # QR na tela + Expo Go no celular
 ```
 
-Ou dê duplo clique em **`abrir-celular.bat`**: detecta o IP do PC, abre **`qr.html`** com o QR e sobe o Expo. Escaneie com a **Câmera** do iPhone (mesma Wi-Fi).
+Se o repositório já estiver na pasta do projeto:
 
-> **Importante:** demonstre no **celular ou emulador**, não só no navegador (Expo Web).
+```bash
+npm install
+```
 
-**Primeiro login:** sem pet cadastrado, o app abre `CadastroPet`; depois de salvar, segue para as abas.
+### 2. Firebase Authentication (obrigatório)
+
+1. Acesse [console.firebase.google.com](https://console.firebase.google.com) e crie o projeto **solin-clyvo-vet** (ou use um já da equipe).
+2. Adicione um app **Web** e copie as chaves.
+3. Em **Authentication → Sign-in method**, ative **E-mail/senha**.
+4. Crie o arquivo `.env` na raiz do app (ao lado do `package.json`):
+
+```env
+EXPO_PUBLIC_FIREBASE_API_KEY=cole_aqui
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=seu-projeto.firebaseapp.com
+EXPO_PUBLIC_FIREBASE_PROJECT_ID=seu-projeto
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=seu-projeto.appspot.com
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=000000000000
+EXPO_PUBLIC_FIREBASE_APP_ID=1:000000000000:web:xxxxxx
+```
+
+Modelo: `.env.example`
+
+No **Authentication → Settings → Authorized domains**, mantenha `localhost` para testar no navegador.
+
+### 3. Subir API + app
+
+Em um terminal:
+
+```bash
+npm run dev
+```
+
+Isso sobe a **API** em `http://localhost:3001` e o **Expo**.
+
+Ou em dois terminais:
+
+```bash
+npm run api
+npm start
+```
+
+### 4. Abrir no celular ou emulador
+
+- Escaneie o QR com o **Expo Go** (mesma rede Wi-Fi).
+- A API é descoberta pelo IP da LAN automaticamente.
+- Se precisar forçar o endereço: `EXPO_PUBLIC_API_URL=http://SEU_IP:3001`
+
+> A avaliação pede o app **rodando no smartphone ou emulador**, não só protótipo de Figma.
+
+**Primeiro uso:** crie uma conta na tela **Cadastro**, depois faça login. A sessão permanece ao reabrir o app. Use **Sair** no Início para encerrar.
 
 ---
 
-## Requisitos do 1º sprint (FIAP)
+## Telas (React Navigation)
 
-| Requisito | Onde no projeto |
-|:----------|:----------------|
-| Navegação (≥ 5 rotas, React Navigation) | `navigation/AppNavigator.tsx` |
-| Protótipo visual | `screens/`, `components/` |
-| Formulário com `useState` | `LoginScreen`, `MeuPetScreen`, `PasseioScreen` |
-| AsyncStorage | `lib/storage.ts` |
+Rotas declaradas em `navigation/AppNavigator.tsx`. Sem Expo Router. Sem troca de tela por `if`/`useState`.
+
+### Stack pública (só deslogado)
+
+| Rota | Função |
+|:-----|:-------|
+| `Login` | Entrada com e-mail e senha (Firebase) |
+| `Cadastro` | Criação de conta (Firebase) |
+
+### Abas protegidas (só autenticado)
+
+| Aba | Função |
+|:----|:-------|
+| `Inicio` | Resumo do dia e atalhos |
+| `MeuPet` | Lista de pets (CRUD) |
+| `Checkin` | Novo check-in de humor |
+| `Passeio` | Novo registro pós-passeio |
+| `Historico` | Linha do tempo da API |
+| `Alertas` | Lembretes (CRUD) |
+
+### Stack protegida (além das abas)
+
+| Rota | Função |
+|:-----|:-------|
+| `PetForm` | Criar / editar pet |
+| `CheckinEditar` | Editar / excluir check-in |
+| `PasseioEditar` | Editar / excluir passeio |
+| `AlertaForm` | Criar / editar alerta |
+| `Orientacao` | Orientação após o check-in |
+
+Telas internas **não abrem** sem login: o navigator autenticado só existe depois do Firebase confirmar a sessão.
+
+---
+
+## Integração com a API (TanStack Query)
+
+Os dados da interface **vêm só da API**. Não há mock, arquivo local nem valor fixo no lugar da resposta.
+
+Duas funcionalidades principais com **CRUD completo na UI**:
+
+| Recurso | Create | Read | Update | Delete |
+|:--------|:------:|:----:|:------:|:------:|
+| **Pets** | `PetForm` | `MeuPet` / `Inicio` | `PetForm` | `MeuPet` |
+| **Check-ins** | `Checkin` | `Historico` / `Inicio` | `CheckinEditar` | `CheckinEditar` |
+
+Também na API (CRUD na interface): **passeios** e **alertas**. Eventos do sensor PIR são gravados em `eventosIot`.
+
+Durante as requisições a UI mostra **loading**. Depois de criar/editar/excluir, o TanStack Query **invalida o cache** e a lista atualiza sozinha — sem reiniciar o app e sem `useState` manual da lista.
+
+Chamadas HTTP ficam em `services/`. Telas só usam hooks em `hooks/`.
+
+---
+
+## Arquitetura
+
+```text
+solin-mobile/
+├── backend/db.json      # API REST (json-server)
+├── screens/             # Interface (sem fetch)
+├── components/          # UI reutilizável
+├── hooks/               # TanStack Query
+├── services/            # Acesso HTTP e Firebase Auth
+├── contexts/            # Sessão autenticada
+├── config/              # API URL, Firebase, QueryClient
+├── navigation/          # Rotas React Navigation
+├── types/               # Modelos
+├── lib/                 # Validação e orientação (regra de tela)
+└── constants/           # Tema e espécies
+```
+
+- **Interface:** `screens/` + `components/`
+- **Regras / sessão:** `contexts/`, `lib/`
+- **Dados / HTTP:** `services/` + `hooks/`
+
+---
+
+## Requisitos da 3ª sprint
+
+| Item | Onde |
+|:-----|:-----|
+| Navegação (≥ 6 telas, React Navigation) | `navigation/AppNavigator.tsx` |
+| API HTTP + TanStack Query + CRUD | `hooks/`, `services/`, telas de pet e check-in |
+| Login real + cadastro + sessão + logout + rotas protegidas | Firebase + `AuthContext` + dois stacks |
+| Arquitetura em camadas | pastas `screens`, `services`, `hooks`, `components` |
 | README | este arquivo |
 
 ---
 
-## Navegação
-
-**Este projeto usa apenas React Navigation** (`@react-navigation/native`, Stack e Bottom Tabs).
-
-- **Não** usa Expo Router (sem pasta `app/`, sem `expo-router` no código nem em `package.json`).
-- O arquivo `.npmrc` com `omit=optional` evita instalar o pacote `expo-router`, que às vezes aparece só como dependência opcional da ferramenta `expo` — **não faz parte do app**.
-
-O app possui **mais de 5 rotas** navegáveis, com **React Navigation**.
-
-### Stack (pilha)
-
-| Rota | Descrição |
-|:-----|:----------|
-| `Login` | Entrada do tutor (formulário com validação) |
-| `CadastroPet` | Primeiro acesso sem pet — cadastro obrigatório antes das abas |
-| `Orientacao` | Orientação após o check-in |
-| `MainTabs` | Abas principais (após login com pet já cadastrado) |
-
-### Bottom Tabs (abas)
-
-| Aba | Descrição |
-|:----|:----------|
-| `Inicio` | Dashboard e resumo do dia |
-| `MeuPet` | Dados e foto do pet |
-| `Checkin` | Check-in em 1 toque |
-| `Passeio` | Registro pós-passeio |
-| `Historico` | Linha do tempo unificada |
-| `Alertas` | Lembretes e notificações |
-
-> Arquivo principal: `navigation/AppNavigator.tsx`
-
----
-
-## Persistência de dados
-
-Dados salvos com **AsyncStorage** e restaurados ao reabrir o app:
-
-- Tutor logado
-- Pet cadastrado
-- Check-ins e streak
-- Passeios
-- Eventos do sensor IoT
-- Alertas
-
-> Implementação: `lib/storage.ts`
-
----
-
-## Estrutura do projeto
-
-```text
-solin-mobile/
-├── assets/
-├── components/
-├── constants/
-├── lib/
-├── navigation/
-├── screens/
-├── App.tsx
-├── app.json
-├── index.ts
-├── metro.config.js
-└── package.json
-```
-
----
-
 <p align="center">
-  <sub>FIAP · 2026 · Equipe Clyvo Vet</sub>
+  <sub>FIAP · 2026 · Equipe Clyvo Vet · 3ª Sprint</sub>
 </p>

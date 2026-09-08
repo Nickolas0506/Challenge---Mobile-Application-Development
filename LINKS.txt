@@ -1,4 +1,4 @@
-Challenge - Mobile Application Development
+Challenge - Mobile Application Development — 3ª Sprint
 
 _________________________________________
 
@@ -15,6 +15,6 @@ _________________________________________
 
 Link do Repositório GitHub: https://github.com/Nickolas0506/Challenge---Mobile-Application-Development.git
 
-Link Video no Youtube: https://youtu.be/zwZm_txVlGc
+Link do vídeo no YouTube (3ª sprint): cole aqui após publicar
 
 _________________________________________
