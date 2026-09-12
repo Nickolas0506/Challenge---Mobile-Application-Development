@@ -1,4 +1,5 @@
 import { getApiUrl } from '../config/api';
+import { obterToken } from './session';
 
 export class ApiError extends Error {
   constructor(
@@ -10,12 +11,22 @@ export class ApiError extends Error {
   }
 }
 
+function cabecalhos(json = false): Record<string, string> {
+  const headers: Record<string, string> = {};
+  if (json) headers['Content-Type'] = 'application/json';
+  const token = obterToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
+
 async function tratarResposta<T>(res: Response): Promise<T> {
   if (res.status === 204) return undefined as T;
+  const texto = await res.text();
+  const corpo = texto ? (JSON.parse(texto) as { mensagem?: string }) : null;
   if (!res.ok) {
-    throw new ApiError(`Falha na API (${res.status})`, res.status);
+    throw new ApiError(corpo?.mensagem || `Falha na API (${res.status})`, res.status);
   }
-  return (await res.json()) as T;
+  return corpo as T;
 }
 
 function comId<T extends { id?: string | number }>(item: T): T & { id: string } {
@@ -24,7 +35,7 @@ function comId<T extends { id?: string | number }>(item: T): T & { id: string } 
 
 export const http = {
   async get<T>(path: string): Promise<T> {
-    const res = await fetch(`${getApiUrl()}${path}`);
+    const res = await fetch(`${getApiUrl()}${path}`, { headers: cabecalhos() });
     return tratarResposta<T>(res);
   },
 
@@ -41,7 +52,7 @@ export const http = {
   async post<T extends { id?: string | number }>(path: string, body: unknown): Promise<T & { id: string }> {
     const res = await fetch(`${getApiUrl()}${path}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: cabecalhos(true),
       body: JSON.stringify(body),
     });
     const item = await tratarResposta<T>(res);
@@ -51,7 +62,7 @@ export const http = {
   async put<T extends { id?: string | number }>(path: string, body: unknown): Promise<T & { id: string }> {
     const res = await fetch(`${getApiUrl()}${path}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: cabecalhos(true),
       body: JSON.stringify(body),
     });
     const item = await tratarResposta<T>(res);
@@ -59,7 +70,7 @@ export const http = {
   },
 
   async delete(path: string): Promise<void> {
-    const res = await fetch(`${getApiUrl()}${path}`, { method: 'DELETE' });
+    const res = await fetch(`${getApiUrl()}${path}`, { method: 'DELETE', headers: cabecalhos() });
     await tratarResposta<void>(res);
   },
 };

@@ -18,3 +18,14 @@ web-build/
 
 # TypeScript
 *.tsbuildinfo
+
+# API Java
+api/target/
+api/data/
+data/
+
+# Restos do Firebase (nao usados)
+.firebaserc
+firebase.json
+firebase-debug.log
+*-debug.log

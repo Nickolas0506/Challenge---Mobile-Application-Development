@@ -16,7 +16,6 @@ import { Campo } from '../components/Campo';
 import { Card } from '../components/Card';
 import { LogoSolin } from '../components/LogoSolin';
 import { theme } from '../constants/theme';
-import { firebaseConfigurado } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { validarEmail, validarSenha } from '../lib/validacao';
 import type { AuthStackParamList } from '../navigation/types';
@@ -73,12 +72,6 @@ export default function LoginScreen({ navigation }: Props) {
             <Card style={styles.card}>
               <Text style={styles.titulo}>Bem-vindo</Text>
               <Text style={styles.sub}>Entre para acompanhar a rotina do seu pet</Text>
-
-              {!firebaseConfigurado() ? (
-                <Text style={styles.erro}>
-                  Configure o Firebase no arquivo .env (veja o README) para o login funcionar.
-                </Text>
-              ) : null}
 
               <Campo
                 label="E-mail *"

@@ -13,7 +13,7 @@ Tutores de pets costumam perceber mudanças na rotina (apetite, urina, comportam
 
 ## Solução
 
-O **SOLIN** é o aplicativo do tutor: check-in em poucos toques, registro pós-passeio, cadastro do pet, alertas e histórico. Nesta 3ª sprint o protótipo visual virou **base funcional**: autenticação real, API HTTP com CRUD e dados que atualizam sozinhos na interface.
+O **SOLIN** é o aplicativo do tutor: check-in em poucos toques, registro pós-passeio, cadastro do pet, alertas e histórico. Nesta 3ª sprint o protótipo visual virou **base funcional**: autenticação real na API Java (alternativa prevista no enunciado no lugar do Firebase), HTTP com CRUD e dados que atualizam sozinhos na interface.
 
 ---
 
@@ -40,9 +40,9 @@ O **SOLIN** é o aplicativo do tutor: check-in em poucos toques, registro pós-p
 | App | React Native + Expo SDK 54 + TypeScript |
 | Navegação | React Navigation (Stack + Bottom Tabs) |
 | Dados HTTP | TanStack Query (`useQuery` / `useMutation`) |
-| API backend | json-server (REST: GET, POST, PUT, DELETE) |
-| Autenticação | Firebase Authentication (e-mail e senha) |
-| Persistência de sessão | Firebase Auth + AsyncStorage |
+| API backend | Java 21 + Spring Boot 3 (REST: GET, POST, PUT, DELETE) |
+| Autenticação | API Java (cadastro/login + JWT) |
+| Persistência de sessão | JWT + AsyncStorage |
 
 ---
 
@@ -51,8 +51,8 @@ O **SOLIN** é o aplicativo do tutor: check-in em poucos toques, registro pós-p
 ### Pré-requisitos
 
 - [Node.js](https://nodejs.org/) 18+
+- [JDK 21+](https://adoptium.net/) e [Maven 3.9+](https://maven.apache.org/)
 - App **Expo Go** no celular (mesma Wi-Fi do PC) **ou** emulador
-- Projeto Firebase com **E-mail/senha** ligado (passos abaixo)
 
 ### 1. Instalar
 
@@ -67,27 +67,7 @@ Se o repositório já estiver na pasta do projeto:
 npm install
 ```
 
-### 2. Firebase Authentication (obrigatório)
-
-1. Acesse [console.firebase.google.com](https://console.firebase.google.com) e crie o projeto **solin-clyvo-vet** (ou use um já da equipe).
-2. Adicione um app **Web** e copie as chaves.
-3. Em **Authentication → Sign-in method**, ative **E-mail/senha**.
-4. Crie o arquivo `.env` na raiz do app (ao lado do `package.json`):
-
-```env
-EXPO_PUBLIC_FIREBASE_API_KEY=cole_aqui
-EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=seu-projeto.firebaseapp.com
-EXPO_PUBLIC_FIREBASE_PROJECT_ID=seu-projeto
-EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=seu-projeto.appspot.com
-EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=000000000000
-EXPO_PUBLIC_FIREBASE_APP_ID=1:000000000000:web:xxxxxx
-```
-
-Modelo: `.env.example`
-
-No **Authentication → Settings → Authorized domains**, mantenha `localhost` para testar no navegador.
-
-### 3. Subir API + app
+### 2. Subir API + app
 
 Em um terminal:
 
@@ -95,7 +75,7 @@ Em um terminal:
 npm run dev
 ```
 
-Isso sobe a **API** em `http://localhost:3001` e o **Expo**.
+Isso sobe a **API Java** em `http://localhost:8080` e o **Expo**.
 
 Ou em dois terminais:
 
@@ -104,11 +84,11 @@ npm run api
 npm start
 ```
 
-### 4. Abrir no celular ou emulador
+### 3. Abrir no celular ou emulador
 
 - Escaneie o QR com o **Expo Go** (mesma rede Wi-Fi).
 - A API é descoberta pelo IP da LAN automaticamente.
-- Se precisar forçar o endereço: `EXPO_PUBLIC_API_URL=http://SEU_IP:3001`
+- Se precisar forçar o endereço: `EXPO_PUBLIC_API_URL=http://SEU_IP:8080`
 
 > A avaliação pede o app **rodando no smartphone ou emulador**, não só protótipo de Figma.
 
@@ -124,8 +104,8 @@ Rotas declaradas em `navigation/AppNavigator.tsx`. Sem Expo Router. Sem troca de
 
 | Rota | Função |
 |:-----|:-------|
-| `Login` | Entrada com e-mail e senha (Firebase) |
-| `Cadastro` | Criação de conta (Firebase) |
+| `Login` | Entrada com e-mail e senha (API Java) |
+| `Cadastro` | Criação de conta (API Java) |
 
 ### Abas protegidas (só autenticado)
 
@@ -148,7 +128,7 @@ Rotas declaradas em `navigation/AppNavigator.tsx`. Sem Expo Router. Sem troca de
 | `AlertaForm` | Criar / editar alerta |
 | `Orientacao` | Orientação após o check-in |
 
-Telas internas **não abrem** sem login: o navigator autenticado só existe depois do Firebase confirmar a sessão.
+Telas internas **não abrem** sem login: o navigator autenticado só existe depois da API confirmar o token JWT.
 
 ---
 
@@ -175,13 +155,13 @@ Chamadas HTTP ficam em `services/`. Telas só usam hooks em `hooks/`.
 
 ```text
 solin-mobile/
-├── backend/db.json      # API REST (json-server)
+├── api/                 # API Java Spring Boot (auth + CRUD)
 ├── screens/             # Interface (sem fetch)
 ├── components/          # UI reutilizável
 ├── hooks/               # TanStack Query
-├── services/            # Acesso HTTP e Firebase Auth
+├── services/            # Acesso HTTP e autenticação
 ├── contexts/            # Sessão autenticada
-├── config/              # API URL, Firebase, QueryClient
+├── config/              # API URL e QueryClient
 ├── navigation/          # Rotas React Navigation
 ├── types/               # Modelos
 ├── lib/                 # Validação e orientação (regra de tela)
@@ -200,7 +180,7 @@ solin-mobile/
 |:-----|:-----|
 | Navegação (≥ 6 telas, React Navigation) | `navigation/AppNavigator.tsx` |
 | API HTTP + TanStack Query + CRUD | `hooks/`, `services/`, telas de pet e check-in |
-| Login real + cadastro + sessão + logout + rotas protegidas | Firebase + `AuthContext` + dois stacks |
+| Login real + cadastro + sessão + logout + rotas protegidas | API Java JWT + `AuthContext` + dois stacks |
 | Arquitetura em camadas | pastas `screens`, `services`, `hooks`, `components` |
 | README | este arquivo |
 

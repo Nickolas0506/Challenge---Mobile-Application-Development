@@ -2,23 +2,23 @@ import type { Pet, PetInput } from '../types/models';
 import { http } from './http';
 
 export const petService = {
-  listar(userId: string) {
-    return http.getLista<Pet>(`/pets?userId=${encodeURIComponent(userId)}&_sort=id&_order=desc`);
+  listar(_userId: string) {
+    return http.getLista<Pet>('/api/pets');
   },
 
   buscar(id: string) {
-    return http.getItem<Pet>(`/pets/${id}`);
+    return http.getItem<Pet>(`/api/pets/${id}`);
   },
 
   criar(dados: PetInput) {
-    return http.post<Pet>('/pets', dados);
+    return http.post<Pet>('/api/pets', dados);
   },
 
   atualizar(id: string, dados: PetInput) {
-    return http.put<Pet>(`/pets/${id}`, { ...dados, id });
+    return http.put<Pet>(`/api/pets/${id}`, dados);
   },
 
   remover(id: string) {
-    return http.delete(`/pets/${id}`);
+    return http.delete(`/api/pets/${id}`);
   },
 };

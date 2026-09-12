@@ -16,7 +16,6 @@ import { Campo } from '../components/Campo';
 import { Card } from '../components/Card';
 import { LogoSolin } from '../components/LogoSolin';
 import { theme } from '../constants/theme';
-import { firebaseConfigurado } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { validarEmail, validarNome, validarSenha } from '../lib/validacao';
 import type { AuthStackParamList } from '../navigation/types';
@@ -84,12 +83,6 @@ export default function CadastroScreen({ navigation }: Props) {
             <Card style={styles.card}>
               <Text style={styles.titulo}>Criar conta</Text>
               <Text style={styles.sub}>Cadastre-se para proteger a rotina do seu pet</Text>
-
-              {!firebaseConfigurado() ? (
-                <Text style={styles.erro}>
-                  Configure o Firebase no arquivo .env (veja o README) para o cadastro funcionar.
-                </Text>
-              ) : null}
 
               <Campo label="Seu nome *" value={nome} onChange={setNome} placeholder="Seu nome" />
               <Campo

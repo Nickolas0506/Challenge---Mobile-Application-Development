@@ -1,8 +1,7 @@
-import { onAuthStateChanged } from 'firebase/auth';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { auth } from '../config/firebase';
 import { queryClient } from '../config/queryClient';
-import { authService, usuarioDeFirebase, type UsuarioAuth } from '../services/authService';
+import { authService, type UsuarioAuth } from '../services/authService';
+import { carregarSessao, limparSessao } from '../services/session';
 
 type AuthContextValor = {
   usuario: UsuarioAuth | null;
@@ -19,11 +18,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUsuario(usuarioDeFirebase(user));
+    void (async () => {
+      const salva = await carregarSessao();
+      if (!salva) {
+        setCarregando(false);
+        return;
+      }
+      const atual = await authService.sessaoAtual();
+      setUsuario(atual);
       setCarregando(false);
-    });
-    return unsubscribe;
+    })();
   }, []);
 
   const valor = useMemo<AuthContextValor>(
@@ -31,13 +35,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       usuario,
       carregando,
       async cadastrar(nome, email, senha) {
-        await authService.cadastrar(nome, email, senha);
+        const criado = await authService.cadastrar(nome, email, senha);
+        setUsuario(criado);
       },
       async entrar(email, senha) {
-        await authService.entrar(email, senha);
+        const logado = await authService.entrar(email, senha);
+        setUsuario(logado);
       },
       async sair() {
         await authService.sair();
+        await limparSessao();
+        setUsuario(null);
         queryClient.clear();
       },
     }),

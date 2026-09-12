@@ -16,14 +16,14 @@ function hostDaLan(): string | null {
   return null;
 }
 
-/** URL da API HTTP da equipe (json-server). Celular usa o IP da LAN do Expo. */
+/** URL da API Spring Boot. Celular usa o IP da LAN do Expo. */
 export function getApiUrl(): string {
   const env = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, '');
   if (env) return env;
 
   const lan = hostDaLan();
-  if (lan) return `http://${lan}:3001`;
+  if (lan) return `http://${lan}:8080`;
 
-  if (Platform.OS === 'android') return 'http://10.0.2.2:3001';
-  return 'http://localhost:3001';
+  if (Platform.OS === 'android') return 'http://10.0.2.2:8080';
+  return 'http://localhost:8080';
 }
