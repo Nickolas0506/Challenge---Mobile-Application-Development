@@ -9,6 +9,7 @@ import { EstadoErro } from '../components/EstadoErro';
 import { TelaLayout } from '../components/TelaLayout';
 import { theme } from '../constants/theme';
 import { useAtualizarPasseio, usePasseio, useRemoverPasseio } from '../hooks/usePasseios';
+import { avisar, confirmar } from '../lib/confirmar';
 import type { AppStackParamList } from '../navigation/types';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'PasseioEditar'>;
@@ -66,21 +67,14 @@ export default function PasseioEditarScreen({ navigation, route }: Props) {
   }
 
   function excluir() {
-    Alert.alert('Excluir passeio', 'Remover este registro da API?', [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Excluir',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await remover.mutateAsync(passeioId);
-            navigation.goBack();
-          } catch (e) {
-            Alert.alert('Erro', e instanceof Error ? e.message : 'Falha ao excluir.');
-          }
-        },
-      },
-    ]);
+    confirmar('Excluir passeio', 'Remover este registro da API?', async () => {
+      try {
+        await remover.mutateAsync(passeioId);
+        navigation.goBack();
+      } catch (e) {
+        avisar('Erro', e instanceof Error ? e.message : 'Falha ao excluir.');
+      }
+    });
   }
 
   if (isLoading) {

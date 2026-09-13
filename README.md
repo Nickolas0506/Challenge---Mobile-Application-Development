@@ -29,7 +29,7 @@ O **SOLIN** é o aplicativo do tutor: check-in em poucos toques, registro pós-p
 
 **GitHub:** [Challenge - Mobile Application Development](https://github.com/Nickolas0506/Challenge---Mobile-Application-Development)
 
-**Vídeo da 3ª sprint (YouTube, até 5 min):** _incluir o link após a gravação_
+**Vídeo da 3ª sprint (YouTube, até 5 min):** [https://youtu.be/vLmsxIUhOj8](https://youtu.be/vLmsxIUhOj8)
 
 ---
 
@@ -37,7 +37,7 @@ O **SOLIN** é o aplicativo do tutor: check-in em poucos toques, registro pós-p
 
 | Categoria | Ferramenta |
 |:----------|:-----------|
-| App | React Native + Expo SDK 54 + TypeScript |
+| App | React Native + Expo SDK 57 + TypeScript |
 | Navegação | React Navigation (Stack + Bottom Tabs) |
 | Dados HTTP | TanStack Query (`useQuery` / `useMutation`) |
 | API backend | Java 21 + Spring Boot 3 (REST: GET, POST, PUT, DELETE) |

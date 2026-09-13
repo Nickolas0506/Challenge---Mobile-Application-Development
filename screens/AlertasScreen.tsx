@@ -10,6 +10,7 @@ import { EstadoCarregando } from '../components/EstadoCarregando';
 import { EstadoErro } from '../components/EstadoErro';
 import { theme } from '../constants/theme';
 import { alertaParaInput, useAlertas, useAtualizarAlerta, useRemoverAlerta } from '../hooks/useAlertas';
+import { confirmar } from '../lib/confirmar';
 import { useCriarEventoIot } from '../hooks/useEventosIot';
 import type { AppStackParamList, TabParamList } from '../navigation/types';
 import type { Alerta } from '../types/models';
@@ -43,10 +44,7 @@ export default function AlertasScreen({ navigation }: Props) {
   }
 
   function excluir(item: Alerta) {
-    Alert.alert('Excluir alerta', `Remover "${item.titulo}" da API?`, [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Excluir', style: 'destructive', onPress: () => remover.mutate(item.id) },
-    ]);
+    confirmar('Excluir alerta', `Remover "${item.titulo}" da API?`, () => remover.mutate(item.id));
   }
 
   async function registrarSensor() {

@@ -32,7 +32,8 @@
           "photosPermission": "O SOLIN precisa acessar suas fotos para o cadastro do pet."
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-status-bar"
     ]
   }
 }

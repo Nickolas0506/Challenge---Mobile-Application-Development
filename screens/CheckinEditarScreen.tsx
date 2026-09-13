@@ -1,6 +1,6 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Botao } from '../components/Botao';
 import { Campo } from '../components/Campo';
 import { EstadoCarregando } from '../components/EstadoCarregando';
@@ -8,6 +8,7 @@ import { EstadoErro } from '../components/EstadoErro';
 import { TelaLayout } from '../components/TelaLayout';
 import { theme } from '../constants/theme';
 import { useAtualizarCheckin, useCheckin, useRemoverCheckin } from '../hooks/useCheckins';
+import { avisar, confirmar } from '../lib/confirmar';
 import type { AppStackParamList } from '../navigation/types';
 import type { HumorCheckin } from '../types/models';
 
@@ -43,26 +44,19 @@ export default function CheckinEditarScreen({ navigation, route }: Props) {
       });
       navigation.goBack();
     } catch (e) {
-      Alert.alert('Erro', e instanceof Error ? e.message : 'Falha ao atualizar.');
+      avisar('Erro', e instanceof Error ? e.message : 'Falha ao atualizar.');
     }
   }
 
   function excluir() {
-    Alert.alert('Excluir check-in', 'Remover este registro da API?', [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Excluir',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await remover.mutateAsync(checkinId);
-            navigation.goBack();
-          } catch (e) {
-            Alert.alert('Erro', e instanceof Error ? e.message : 'Falha ao excluir.');
-          }
-        },
-      },
-    ]);
+    confirmar('Excluir check-in', 'Remover este registro da API?', async () => {
+      try {
+        await remover.mutateAsync(checkinId);
+        navigation.goBack();
+      } catch (e) {
+        avisar('Erro', e instanceof Error ? e.message : 'Falha ao excluir.');
+      }
+    });
   }
 
   if (isLoading) {

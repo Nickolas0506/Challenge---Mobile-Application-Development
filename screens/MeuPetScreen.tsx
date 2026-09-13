@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Alert, FlatList, Image, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { Botao } from '../components/Botao';
 import { CabecalhoTela } from '../components/CabecalhoTela';
 import { Card } from '../components/Card';
@@ -10,6 +10,7 @@ import { EstadoCarregando } from '../components/EstadoCarregando';
 import { EstadoErro } from '../components/EstadoErro';
 import { theme } from '../constants/theme';
 import { usePets, useRemoverPet } from '../hooks/usePets';
+import { confirmar } from '../lib/confirmar';
 import type { AppStackParamList, TabParamList } from '../navigation/types';
 import type { Pet } from '../types/models';
 
@@ -23,14 +24,7 @@ export default function MeuPetScreen({ navigation }: Props) {
   const remover = useRemoverPet();
 
   function confirmarExclusao(pet: Pet) {
-    Alert.alert('Excluir pet', `Remover ${pet.nome} da API?`, [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Excluir',
-        style: 'destructive',
-        onPress: () => remover.mutate(pet.id),
-      },
-    ]);
+    confirmar('Excluir pet', `Remover ${pet.nome} da API?`, () => remover.mutate(pet.id));
   }
 
   return (
