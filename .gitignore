@@ -23,9 +23,3 @@ web-build/
 api/target/
 api/data/
 data/
-
-# Restos do Firebase (nao usados)
-.firebaserc
-firebase.json
-firebase-debug.log
-*-debug.log

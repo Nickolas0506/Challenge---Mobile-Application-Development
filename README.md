@@ -13,7 +13,7 @@ Tutores de pets costumam perceber mudanças na rotina (apetite, urina, comportam
 
 ## Solução
 
-O **SOLIN** é o aplicativo do tutor: check-in em poucos toques, registro pós-passeio, cadastro do pet, alertas e histórico. Nesta 3ª sprint o protótipo visual virou **base funcional**: autenticação real na API Java (alternativa prevista no enunciado no lugar do Firebase), HTTP com CRUD e dados que atualizam sozinhos na interface.
+O **SOLIN** é o aplicativo do tutor: check-in em poucos toques, registro pós-passeio, cadastro do pet, alertas e histórico. Nesta 3ª sprint o protótipo visual virou **base funcional**: autenticação real na API Java Spring Boot, HTTP com CRUD e dados que atualizam sozinhos na interface.
 
 ---
 
