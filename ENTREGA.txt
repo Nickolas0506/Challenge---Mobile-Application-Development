@@ -1,7 +1,7 @@
 SOLIN — 3ª Sprint (FIAP Challenge 2026 · Clyvo Vet)
 
-GitHub:
+REPOSITORIO:
 https://github.com/Nickolas0506/Challenge---Mobile-Application-Development
 
-YouTube:
+YOUTUBE:
 https://youtu.be/vLmsxIUhOj8

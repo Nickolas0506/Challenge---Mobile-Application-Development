@@ -1,20 +1,17 @@
-Challenge - Mobile Application Development — 3ª Sprint
+SOLIN — 3ª Sprint (FIAP Challenge 2026 · Clyvo Vet)
+
+REPOSITORIO:
+https://github.com/Nickolas0506/Challenge---Mobile-Application-Development
+
+YOUTUBE:
+https://youtu.be/vLmsxIUhOj8
 
 _________________________________________
 
- Equipe
+Equipe
 
-| Nickolas Davi | RM564105 |
-| Samara Vilela | RM566133 |
-| Natália Cristina | RM564099 |
-| Otávio Ferreira | RM565960 |
-| Rodrigo Carvalho | RM565162 |
-
-_________________________________________
-
-
-Link do Repositório GitHub: https://github.com/Nickolas0506/Challenge---Mobile-Application-Development.git
-
-Link do vídeo no YouTube (3ª sprint): https://youtu.be/vLmsxIUhOj8
-
-_________________________________________
+| Nickolas Davi      | RM564105 |
+| Samara Vilela      | RM566133 |
+| Natália Cristina   | RM564099 |
+| Otávio Ferreira    | RM565960 |
+| Rodrigo Carvalho   | RM565162 |

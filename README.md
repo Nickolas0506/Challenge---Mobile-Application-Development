@@ -5,6 +5,15 @@
   <em>O cuidado que protege o seu pet · 3ª Sprint</em>
 </p>
 
+## Entrega (professor)
+
+| | Link |
+|:---|:---|
+| **Repositório** | https://github.com/Nickolas0506/Challenge---Mobile-Application-Development |
+| **Vídeo no YouTube** | https://youtu.be/vLmsxIUhOj8 |
+
+Os mesmos links estão em `LINKS.txt` e `ENTREGA.txt`.
+
 ---
 
 ## Problema
@@ -26,10 +35,6 @@ O **SOLIN** é o aplicativo do tutor: check-in em poucos toques, registro pós-p
 | Natália Cristina | 564099 |
 | Otávio Ferreira | 565960 |
 | Rodrigo Carvalho | 565162 |
-
-**GitHub:** [Challenge - Mobile Application Development](https://github.com/Nickolas0506/Challenge---Mobile-Application-Development)
-
-**Vídeo da 3ª sprint (YouTube, até 5 min):** [https://youtu.be/vLmsxIUhOj8](https://youtu.be/vLmsxIUhOj8)
 
 ---
 
