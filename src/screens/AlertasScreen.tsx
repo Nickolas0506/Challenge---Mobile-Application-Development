@@ -14,6 +14,9 @@ import { confirmar } from '../lib/confirmar';
 import { useCriarEventoIot } from '../hooks/useEventosIot';
 import type { AppStackParamList, TabParamList } from '../navigation/types';
 import type { Alerta } from '../types/models';
+import type { Cores } from '../constants/cores';
+import { useTema } from '../contexts/TemaContext';
+import { useEstilos } from '../hooks/useEstilos';
 
 const TIPO_CONFIG: Record<Alerta['tipo'], { label: string; icone: keyof typeof Ionicons.glyphMap }> = {
   checkin: { label: 'Rotina', icone: 'calendar' },
@@ -28,6 +31,8 @@ type Props = CompositeScreenProps<
 >;
 
 export default function AlertasScreen({ navigation }: Props) {
+  const { cores } = useTema();
+  const styles = useEstilos(criarEstilos);
   const { data: alertas, isLoading, isError, refetch, isRefetching } = useAlertas();
   const atualizar = useAtualizarAlerta();
   const remover = useRemoverAlerta();
@@ -111,7 +116,7 @@ export default function AlertasScreen({ navigation }: Props) {
               <Pressable onPress={() => marcarLido(item)}>
                 <View style={styles.row}>
                   <View style={[styles.iconeBox, !item.lido && styles.iconePendente]}>
-                    <Ionicons name={cfg.icone} size={20} color={theme.cores.verde} />
+                    <Ionicons name={cfg.icone} size={20} color={cores.verde} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.tipo}>{cfg.label}</Text>
@@ -137,36 +142,37 @@ export default function AlertasScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  fundo: { flex: 1, backgroundColor: theme.cores.fundo },
-  pad: { paddingHorizontal: theme.espaco.md },
-  lista: { padding: theme.espaco.md, paddingBottom: theme.espaco.xl },
-  topoAcoes: { marginBottom: theme.espaco.md },
-  card: { marginBottom: theme.espaco.sm },
-  naoLido: { borderWidth: 2, borderColor: theme.cores.verde },
-  row: { flexDirection: 'row', alignItems: 'flex-start', gap: theme.espaco.sm },
-  iconeBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: theme.cores.fundo,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconePendente: { backgroundColor: theme.cores.verdeClaro },
-  tipo: { fontSize: 11, fontWeight: '800', color: theme.cores.verde, textTransform: 'uppercase' },
-  titulo: { fontSize: 16, fontWeight: '700', marginTop: 2, color: theme.cores.texto },
-  msg: { fontSize: 14, color: theme.cores.textoClaro, marginTop: 4, lineHeight: 20 },
-  bolinha: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: theme.cores.vermelho,
-    marginTop: 6,
-  },
-  acoes: { flexDirection: 'row', gap: theme.espaco.lg, marginTop: theme.espaco.sm },
-  link: { color: theme.cores.verde, fontWeight: '700' },
-  linkExcluir: { color: theme.cores.vermelho, fontWeight: '700' },
-  vazio: { fontWeight: '700', fontSize: 16, textAlign: 'center' },
-  vazioSub: { textAlign: 'center', color: theme.cores.textoClaro, marginTop: 8 },
-});
+const criarEstilos = (cores: Cores) =>
+  StyleSheet.create({
+    fundo: { flex: 1, backgroundColor: cores.fundo },
+    pad: { paddingHorizontal: theme.espaco.md },
+    lista: { padding: theme.espaco.md, paddingBottom: theme.espaco.xl },
+    topoAcoes: { marginBottom: theme.espaco.md },
+    card: { marginBottom: theme.espaco.sm },
+    naoLido: { borderWidth: 2, borderColor: cores.verde },
+    row: { flexDirection: 'row', alignItems: 'flex-start', gap: theme.espaco.sm },
+    iconeBox: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      backgroundColor: cores.fundo,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    iconePendente: { backgroundColor: cores.verdeClaro },
+    tipo: { fontSize: 11, fontWeight: '800', color: cores.verde, textTransform: 'uppercase' },
+    titulo: { fontSize: 16, fontWeight: '700', marginTop: 2, color: cores.texto },
+    msg: { fontSize: 14, color: cores.textoClaro, marginTop: 4, lineHeight: 20 },
+    bolinha: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      backgroundColor: cores.vermelho,
+      marginTop: 6,
+    },
+    acoes: { flexDirection: 'row', gap: theme.espaco.lg, marginTop: theme.espaco.sm },
+    link: { color: cores.verde, fontWeight: '700' },
+    linkExcluir: { color: cores.vermelho, fontWeight: '700' },
+    vazio: { fontWeight: '700', fontSize: 16, textAlign: 'center' },
+    vazioSub: { textAlign: 'center', color: cores.textoClaro, marginTop: 8 },
+  });

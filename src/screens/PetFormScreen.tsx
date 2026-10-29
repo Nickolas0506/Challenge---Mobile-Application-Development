@@ -18,10 +18,15 @@ import {
 import { theme } from '../constants/theme';
 import { useAtualizarPet, useCriarPet, usePet } from '../hooks/usePets';
 import type { AppStackParamList } from '../navigation/types';
+import type { Cores } from '../constants/cores';
+import { useTema } from '../contexts/TemaContext';
+import { useEstilos } from '../hooks/useEstilos';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'PetForm'>;
 
 export default function PetFormScreen({ navigation, route }: Props) {
+  const { cores } = useTema();
+  const styles = useEstilos(criarEstilos);
   const petId = route.params?.petId;
   const petQuery = usePet(petId);
   const criar = useCriarPet();
@@ -124,7 +129,7 @@ export default function PetFormScreen({ navigation, route }: Props) {
     <TelaLayout contentContainerStyle={styles.scroll}>
       <Card style={styles.dica}>
         <View style={styles.dicaRow}>
-          <Ionicons name="cloud-outline" size={22} color={theme.cores.verde} />
+          <Ionicons name="cloud-outline" size={22} color={cores.verde} />
           <Text style={styles.dicaTxt}>
             Este cadastro e enviado para a API HTTP. Depois de salvar, a lista atualiza sozinha.
           </Text>
@@ -168,7 +173,7 @@ export default function PetFormScreen({ navigation, route }: Props) {
           <Image source={{ uri: foto }} style={styles.foto} />
         ) : (
           <View style={styles.fotoVazio}>
-            <Ionicons name="camera-outline" size={32} color={theme.cores.verde} />
+            <Ionicons name="camera-outline" size={32} color={cores.verde} />
             <Text style={styles.fotoTxt}>Toque para adicionar foto</Text>
           </View>
         )}
@@ -192,35 +197,36 @@ export default function PetFormScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  scroll: { paddingBottom: 140 },
-  dica: { marginBottom: theme.espaco.md },
-  dicaRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  dicaTxt: { flex: 1, fontSize: 14, color: theme.cores.texto, lineHeight: 20 },
-  secao: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: theme.cores.verde,
-    marginBottom: theme.espaco.sm,
-    marginTop: theme.espaco.xs,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  fotoBox: {
-    height: 140,
-    borderRadius: theme.raio.md,
-    borderWidth: 1.5,
-    borderColor: theme.cores.borda,
-    borderStyle: 'dashed',
-    marginBottom: theme.espaco.md,
-    overflow: 'hidden',
-    backgroundColor: theme.cores.branco,
-  },
-  foto: { width: '100%', height: '100%' },
-  fotoVazio: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },
-  fotoTxt: { color: theme.cores.verde, fontWeight: '600' },
-  preview: { marginBottom: theme.espaco.sm },
-  previewLabel: { fontWeight: '700', marginBottom: 6, color: theme.cores.texto },
-  previewTxt: { color: theme.cores.textoClaro, lineHeight: 22, fontSize: 15 },
-  erro: { color: theme.cores.vermelho, fontWeight: '600', marginBottom: theme.espaco.sm },
-});
+const criarEstilos = (cores: Cores) =>
+  StyleSheet.create({
+    scroll: { paddingBottom: 140 },
+    dica: { marginBottom: theme.espaco.md },
+    dicaRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+    dicaTxt: { flex: 1, fontSize: 14, color: cores.texto, lineHeight: 20 },
+    secao: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: cores.verde,
+      marginBottom: theme.espaco.sm,
+      marginTop: theme.espaco.xs,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    fotoBox: {
+      height: 140,
+      borderRadius: theme.raio.md,
+      borderWidth: 1.5,
+      borderColor: cores.borda,
+      borderStyle: 'dashed',
+      marginBottom: theme.espaco.md,
+      overflow: 'hidden',
+      backgroundColor: cores.superficie,
+    },
+    foto: { width: '100%', height: '100%' },
+    fotoVazio: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },
+    fotoTxt: { color: cores.verde, fontWeight: '600' },
+    preview: { marginBottom: theme.espaco.sm },
+    previewLabel: { fontWeight: '700', marginBottom: 6, color: cores.texto },
+    previewTxt: { color: cores.textoClaro, lineHeight: 22, fontSize: 15 },
+    erro: { color: cores.vermelho, fontWeight: '600', marginBottom: theme.espaco.sm },
+  });

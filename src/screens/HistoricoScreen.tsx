@@ -13,6 +13,9 @@ import { useEventosIot } from '../hooks/useEventosIot';
 import { usePasseios } from '../hooks/usePasseios';
 import { usePets } from '../hooks/usePets';
 import type { AppStackParamList, TabParamList } from '../navigation/types';
+import type { Cores } from '../constants/cores';
+import { useTema } from '../contexts/TemaContext';
+import { useEstilos } from '../hooks/useEstilos';
 
 type ItemHistorico =
   | { tipo: 'pet'; data: string; id: string; titulo: string; detalhe: string }
@@ -49,6 +52,8 @@ type Props = CompositeScreenProps<
 >;
 
 export default function HistoricoScreen({ navigation }: Props) {
+  const { cores } = useTema();
+  const styles = useEstilos(criarEstilos);
   const petsQuery = usePets();
   const checkinsQuery = useCheckins();
   const passeiosQuery = usePasseios();
@@ -145,14 +150,14 @@ export default function HistoricoScreen({ navigation }: Props) {
             <Card style={styles.item}>
               <View style={styles.itemHeader}>
                 <View style={styles.iconeBox}>
-                  <Ionicons name={ICONES[item.tipo]} size={18} color={theme.cores.verde} />
+                  <Ionicons name={ICONES[item.tipo]} size={18} color={cores.verde} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.itemTipo}>{LABELS[item.tipo]}</Text>
                   <Text style={styles.itemData}>{formatarData(item.data)}</Text>
                 </View>
                 {item.tipo !== 'iot' ? (
-                  <Ionicons name="chevron-forward" size={18} color={theme.cores.textoClaro} />
+                  <Ionicons name="chevron-forward" size={18} color={cores.textoClaro} />
                 ) : null}
               </View>
               <Text style={styles.itemDetalhe}>{item.detalhe}</Text>
@@ -164,23 +169,24 @@ export default function HistoricoScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  fundo: { flex: 1, backgroundColor: theme.cores.fundo },
-  pad: { paddingHorizontal: theme.espaco.md },
-  lista: { padding: theme.espaco.md, paddingBottom: theme.espaco.xl },
-  item: { marginBottom: theme.espaco.sm },
-  itemHeader: { flexDirection: 'row', alignItems: 'center', gap: theme.espaco.sm },
-  iconeBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: theme.cores.verdeClaro,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  itemTipo: { fontWeight: '700', fontSize: 16, color: theme.cores.texto },
-  itemData: { fontSize: 12, color: theme.cores.textoClaro, marginTop: 2 },
-  itemDetalhe: { marginTop: 10, fontSize: 14, color: theme.cores.texto, lineHeight: 20 },
-  vazio: { fontWeight: '700', fontSize: 16, textAlign: 'center' },
-  vazioSub: { textAlign: 'center', color: theme.cores.textoClaro, marginTop: 8, lineHeight: 20 },
-});
+const criarEstilos = (cores: Cores) =>
+  StyleSheet.create({
+    fundo: { flex: 1, backgroundColor: cores.fundo },
+    pad: { paddingHorizontal: theme.espaco.md },
+    lista: { padding: theme.espaco.md, paddingBottom: theme.espaco.xl },
+    item: { marginBottom: theme.espaco.sm },
+    itemHeader: { flexDirection: 'row', alignItems: 'center', gap: theme.espaco.sm },
+    iconeBox: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      backgroundColor: cores.verdeClaro,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    itemTipo: { fontWeight: '700', fontSize: 16, color: cores.texto },
+    itemData: { fontSize: 12, color: cores.textoClaro, marginTop: 2 },
+    itemDetalhe: { marginTop: 10, fontSize: 14, color: cores.texto, lineHeight: 20 },
+    vazio: { fontWeight: '700', fontSize: 16, textAlign: 'center' },
+    vazioSub: { textAlign: 'center', color: cores.textoClaro, marginTop: 8, lineHeight: 20 },
+  });

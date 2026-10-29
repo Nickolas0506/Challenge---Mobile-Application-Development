@@ -11,12 +11,17 @@ import { theme } from '../constants/theme';
 import { useCriarPasseio } from '../hooks/usePasseios';
 import { usePets } from '../hooks/usePets';
 import type { TabParamList } from '../navigation/types';
+import type { Cores } from '../constants/cores';
+import { useTema } from '../contexts/TemaContext';
+import { useEstilos } from '../hooks/useEstilos';
 
 function simNao(valor: boolean) {
   return valor ? 'sim' : 'nao';
 }
 
 export default function PasseioScreen() {
+  const { cores } = useTema();
+  const styles = useEstilos(criarEstilos);
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
   const { data: pets } = usePets();
   const criar = useCriarPasseio();
@@ -87,7 +92,7 @@ export default function PasseioScreen() {
             <Text style={styles.switchLabel}>Bebeu agua?</Text>
             <Text style={styles.switchDica}>Durante ou logo apos o passeio</Text>
           </View>
-          <Switch value={agua} onValueChange={setAgua} trackColor={{ true: theme.cores.verde }} />
+          <Switch value={agua} onValueChange={setAgua} trackColor={{ true: cores.verde }} />
         </View>
         <View style={styles.divider} />
         <View style={styles.switchRow}>
@@ -95,7 +100,7 @@ export default function PasseioScreen() {
             <Text style={styles.switchLabel}>Urinou no passeio?</Text>
             <Text style={styles.switchDica}>Registrou xixi durante a caminhada</Text>
           </View>
-          <Switch value={urinou} onValueChange={setUrinou} trackColor={{ true: theme.cores.verde }} />
+          <Switch value={urinou} onValueChange={setUrinou} trackColor={{ true: cores.verde }} />
         </View>
         {urinou ? (
           <>
@@ -108,7 +113,7 @@ export default function PasseioScreen() {
               <Switch
                 value={urinaNormal}
                 onValueChange={setUrinaNormal}
-                trackColor={{ true: theme.cores.verde }}
+                trackColor={{ true: cores.verde }}
               />
             </View>
           </>
@@ -119,7 +124,7 @@ export default function PasseioScreen() {
             <Text style={styles.switchLabel}>Fezes normais?</Text>
             <Text style={styles.switchDica}>Consistencia e aspecto habituais</Text>
           </View>
-          <Switch value={fezes} onValueChange={setFezes} trackColor={{ true: theme.cores.verde }} />
+          <Switch value={fezes} onValueChange={setFezes} trackColor={{ true: cores.verde }} />
         </View>
         <View style={styles.divider} />
         <View style={styles.switchRow}>
@@ -130,7 +135,7 @@ export default function PasseioScreen() {
           <Switch
             value={comportamentoNormal}
             onValueChange={setComportamentoNormal}
-            trackColor={{ true: theme.cores.verde }}
+            trackColor={{ true: cores.verde }}
           />
         </View>
       </Card>
@@ -153,21 +158,22 @@ export default function PasseioScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  switchCard: { paddingVertical: 4 },
-  switchRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 4,
-    gap: theme.espaco.sm,
-  },
-  switchTextos: { flex: 1 },
-  divider: { height: 1, backgroundColor: theme.cores.borda },
-  switchLabel: { fontSize: 16, fontWeight: '600', color: theme.cores.texto },
-  switchDica: { fontSize: 12, color: theme.cores.textoClaro, marginTop: 2, lineHeight: 16 },
-  preview: { backgroundColor: theme.cores.verdeClaro, marginTop: theme.espaco.sm },
-  previewLabel: { fontSize: 12, fontWeight: '700', color: theme.cores.verdeEscuro },
-  previewTxt: { fontSize: 14, color: theme.cores.texto, marginTop: 6, lineHeight: 20 },
-});
+const criarEstilos = (cores: Cores) =>
+  StyleSheet.create({
+    switchCard: { paddingVertical: 4 },
+    switchRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 4,
+      gap: theme.espaco.sm,
+    },
+    switchTextos: { flex: 1 },
+    divider: { height: 1, backgroundColor: cores.borda },
+    switchLabel: { fontSize: 16, fontWeight: '600', color: cores.texto },
+    switchDica: { fontSize: 12, color: cores.textoClaro, marginTop: 2, lineHeight: 16 },
+    preview: { backgroundColor: cores.verdeClaro, marginTop: theme.espaco.sm },
+    previewLabel: { fontSize: 12, fontWeight: '700', color: cores.verdeEscuro },
+    previewTxt: { fontSize: 14, color: cores.texto, marginTop: 6, lineHeight: 20 },
+  });

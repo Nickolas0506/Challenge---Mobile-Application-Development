@@ -19,10 +19,13 @@ import { theme } from '../constants/theme';
 import { useAuth } from '../contexts/AuthContext';
 import { validarEmail, validarSenha } from '../lib/validacao';
 import type { AuthStackParamList } from '../navigation/types';
+import { COR_MARCA, type Cores } from '../constants/cores';
+import { useEstilos } from '../hooks/useEstilos';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 export default function LoginScreen({ navigation }: Props) {
+  const styles = useEstilos(criarEstilos);
   const { entrar } = useAuth();
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -102,25 +105,26 @@ export default function LoginScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: theme.cores.verde },
-  flex: { flex: 1 },
-  scroll: { flexGrow: 1, paddingBottom: theme.espaco.lg },
-  topo: {
-    paddingTop: theme.espaco.md,
-    paddingBottom: 14,
-    paddingHorizontal: theme.espaco.md,
-    alignItems: 'center',
-  },
-  formArea: { paddingHorizontal: theme.espaco.md, paddingTop: 6 },
-  card: {
-    borderTopLeftRadius: theme.raio.lg,
-    borderTopRightRadius: theme.raio.lg,
-  },
-  titulo: { fontSize: 22, fontWeight: '800', color: theme.cores.texto },
-  sub: { fontSize: 14, color: theme.cores.textoClaro, marginBottom: theme.espaco.lg, marginTop: 4 },
-  erro: { color: theme.cores.vermelho, marginBottom: theme.espaco.sm, fontWeight: '600' },
-  linkBox: { marginTop: theme.espaco.md, paddingVertical: 8, alignItems: 'center' },
-  link: { color: theme.cores.textoClaro, fontSize: 14 },
-  linkForte: { color: theme.cores.verde, fontWeight: '800' },
-});
+const criarEstilos = (cores: Cores) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: COR_MARCA },
+    flex: { flex: 1 },
+    scroll: { flexGrow: 1, paddingBottom: theme.espaco.lg },
+    topo: {
+      paddingTop: theme.espaco.md,
+      paddingBottom: 14,
+      paddingHorizontal: theme.espaco.md,
+      alignItems: 'center',
+    },
+    formArea: { paddingHorizontal: theme.espaco.md, paddingTop: 6 },
+    card: {
+      borderTopLeftRadius: theme.raio.lg,
+      borderTopRightRadius: theme.raio.lg,
+    },
+    titulo: { fontSize: 22, fontWeight: '800', color: cores.texto },
+    sub: { fontSize: 14, color: cores.textoClaro, marginBottom: theme.espaco.lg, marginTop: 4 },
+    erro: { color: cores.vermelho, marginBottom: theme.espaco.sm, fontWeight: '600' },
+    linkBox: { marginTop: theme.espaco.md, paddingVertical: 8, alignItems: 'center' },
+    link: { color: cores.textoClaro, fontSize: 14 },
+    linkForte: { color: cores.verde, fontWeight: '800' },
+  });

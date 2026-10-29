@@ -17,6 +17,9 @@ import { useCheckins } from '../hooks/useCheckins';
 import { useEventosIot } from '../hooks/useEventosIot';
 import { usePets } from '../hooks/usePets';
 import type { AppStackParamList, TabParamList } from '../navigation/types';
+import type { Cores } from '../constants/cores';
+import { useTema } from '../contexts/TemaContext';
+import { useEstilos } from '../hooks/useEstilos';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'Inicio'>,
@@ -47,6 +50,8 @@ function calcularStreak(datas: string[]) {
 }
 
 export default function InicioScreen({ navigation }: Props) {
+  const { cores } = useTema();
+  const styles = useEstilos(criarEstilos);
   const insets = useSafeAreaInsets();
   const { usuario, sair } = useAuth();
   const petsQuery = usePets();
@@ -79,6 +84,14 @@ export default function InicioScreen({ navigation }: Props) {
       <View style={[styles.hero, { paddingTop: insets.top + theme.espaco.sm }]}>
         <View style={styles.heroTopo}>
           <View style={styles.heroEspaco} />
+          <Pressable
+            style={styles.config}
+            onPress={() => navigation.navigate('Configuracoes')}
+            hitSlop={8}
+            accessibilityLabel="Configuracoes"
+          >
+            <Ionicons name="settings-outline" size={20} color="#fff" />
+          </Pressable>
           <Pressable style={styles.sair} onPress={() => void sair()} hitSlop={8}>
             <Text style={styles.sairTxt}>Sair</Text>
           </Pressable>
@@ -104,7 +117,7 @@ export default function InicioScreen({ navigation }: Props) {
         {!carregando && !erro && !pet ? (
           <Pressable onPress={() => navigation.navigate('MeuPet')}>
             <Card destaque style={styles.semPet}>
-              <Ionicons name="paw" size={36} color={theme.cores.verde} />
+              <Ionicons name="paw" size={36} color={cores.verde} />
               <Text style={styles.semPetTitulo}>Nenhum pet cadastrado</Text>
               <Text style={styles.semPetSub}>
                 Toque aqui ou va na aba <Text style={styles.negrito}>Meu Pet</Text> para
@@ -132,7 +145,7 @@ export default function InicioScreen({ navigation }: Props) {
                   </Text>
                   {pet.idade ? <Text style={styles.petExtra}>{pet.idade}</Text> : null}
                 </View>
-                <Ionicons name="create-outline" size={22} color={theme.cores.verde} />
+                <Ionicons name="create-outline" size={22} color={cores.verde} />
               </View>
               <Text style={styles.editarHint}>Toque para gerenciar os pets</Text>
             </Card>
@@ -150,8 +163,8 @@ export default function InicioScreen({ navigation }: Props) {
               ? 'Dias seguidos registrando como seu pet esta'
               : 'Faca o primeiro check-in para comecar a sequencia'
           }
-          corFundo="#FFF4E6"
-          corIcone="#E76F51"
+          corFundo={cores.avisoFundo}
+          corIcone={cores.vermelho}
         />
 
         <ResumoDiaCard
@@ -163,8 +176,8 @@ export default function InicioScreen({ navigation }: Props) {
               ? 'Voce ja registrou o humor do pet hoje. Otimo!'
               : 'Ainda falta registrar como seu pet esta hoje'
           }
-          corFundo={fezHoje ? '#E8F6F3' : '#FFF0EB'}
-          corIcone={fezHoje ? theme.cores.verde : '#E76F51'}
+          corFundo={fezHoje ? cores.sucessoFundo : cores.erroFundo}
+          corIcone={fezHoje ? cores.verde : cores.vermelho}
           onPress={fezHoje ? undefined : () => navigation.navigate('Checkin')}
         />
 
@@ -202,7 +215,7 @@ export default function InicioScreen({ navigation }: Props) {
             <TituloSecao titulo="Sensor urinario" dica="Caixa de areia / tapete" />
             <Card>
               <View style={styles.iotHeader}>
-                <Ionicons name="hardware-chip-outline" size={22} color={theme.cores.verde} />
+                <Ionicons name="hardware-chip-outline" size={22} color={cores.verde} />
                 <Text style={styles.iotTitulo}>Ultimo evento PIR</Text>
               </View>
               <Text style={styles.iotMsg}>{ultimoIot.mensagem}</Text>
@@ -215,72 +228,79 @@ export default function InicioScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  hero: {
-    backgroundColor: theme.cores.verde,
-    paddingHorizontal: theme.espaco.md,
-    paddingBottom: theme.espaco.lg,
-    borderBottomLeftRadius: theme.raio.lg,
-    borderBottomRightRadius: theme.raio.lg,
-  },
-  heroTopo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    minHeight: 36,
-    marginBottom: theme.espaco.sm,
-  },
-  heroEspaco: { flex: 1 },
-  sair: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: theme.raio.pill,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-  },
-  sairTxt: { color: '#fff', fontWeight: '700', fontSize: 14 },
-  ola: { fontSize: 26, fontWeight: '800', color: '#fff', marginTop: 4 },
-  frase: { fontSize: 15, color: 'rgba(255,255,255,0.92)', marginTop: 6, lineHeight: 22 },
-  corpo: { padding: theme.espaco.md, paddingTop: theme.espaco.md },
-  semPet: { alignItems: 'center', paddingVertical: theme.espaco.lg },
-  semPetTitulo: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: theme.cores.texto,
-    marginTop: theme.espaco.sm,
-  },
-  semPetSub: {
-    fontSize: 14,
-    color: theme.cores.textoClaro,
-    textAlign: 'center',
-    marginTop: 8,
-    lineHeight: 21,
-    paddingHorizontal: theme.espaco.sm,
-  },
-  negrito: { fontWeight: '700', color: theme.cores.verde },
-  petCard: { marginBottom: theme.espaco.md },
-  petRow: { flexDirection: 'row', alignItems: 'center', gap: theme.espaco.md },
-  foto: { width: 56, height: 56, borderRadius: 28 },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: theme.cores.verdeClaro,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  letra: { fontSize: 24, fontWeight: '800', color: theme.cores.verde },
-  petNome: { fontSize: 20, fontWeight: '800', color: theme.cores.texto },
-  petInfo: { fontSize: 14, color: theme.cores.textoClaro, marginTop: 4 },
-  petExtra: { fontSize: 13, color: theme.cores.texto, marginTop: 4, lineHeight: 18 },
-  editarHint: {
-    fontSize: 12,
-    color: theme.cores.verde,
-    fontWeight: '600',
-    marginTop: theme.espaco.sm,
-    textAlign: 'center',
-  },
-  iotHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  iotTitulo: { fontSize: 15, fontWeight: '700', color: theme.cores.texto },
-  iotMsg: { fontSize: 14, color: theme.cores.texto, lineHeight: 20 },
-  iotData: { fontSize: 12, color: theme.cores.textoClaro, marginTop: 8 },
-});
+const criarEstilos = (cores: Cores) =>
+  StyleSheet.create({
+    hero: {
+      backgroundColor: cores.verde,
+      paddingHorizontal: theme.espaco.md,
+      paddingBottom: theme.espaco.lg,
+      borderBottomLeftRadius: theme.raio.lg,
+      borderBottomRightRadius: theme.raio.lg,
+    },
+    heroTopo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      minHeight: 36,
+      marginBottom: theme.espaco.sm,
+    },
+    heroEspaco: { flex: 1 },
+    config: {
+      padding: 8,
+      borderRadius: theme.raio.pill,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      marginRight: theme.espaco.sm,
+    },
+    sair: {
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: theme.raio.pill,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+    },
+    sairTxt: { color: '#fff', fontWeight: '700', fontSize: 14 },
+    ola: { fontSize: 26, fontWeight: '800', color: '#fff', marginTop: 4 },
+    frase: { fontSize: 15, color: 'rgba(255,255,255,0.92)', marginTop: 6, lineHeight: 22 },
+    corpo: { padding: theme.espaco.md, paddingTop: theme.espaco.md },
+    semPet: { alignItems: 'center', paddingVertical: theme.espaco.lg },
+    semPetTitulo: {
+      fontSize: 18,
+      fontWeight: '800',
+      color: cores.texto,
+      marginTop: theme.espaco.sm,
+    },
+    semPetSub: {
+      fontSize: 14,
+      color: cores.textoClaro,
+      textAlign: 'center',
+      marginTop: 8,
+      lineHeight: 21,
+      paddingHorizontal: theme.espaco.sm,
+    },
+    negrito: { fontWeight: '700', color: cores.verde },
+    petCard: { marginBottom: theme.espaco.md },
+    petRow: { flexDirection: 'row', alignItems: 'center', gap: theme.espaco.md },
+    foto: { width: 56, height: 56, borderRadius: 28 },
+    avatar: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: cores.verdeClaro,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    letra: { fontSize: 24, fontWeight: '800', color: cores.verde },
+    petNome: { fontSize: 20, fontWeight: '800', color: cores.texto },
+    petInfo: { fontSize: 14, color: cores.textoClaro, marginTop: 4 },
+    petExtra: { fontSize: 13, color: cores.texto, marginTop: 4, lineHeight: 18 },
+    editarHint: {
+      fontSize: 12,
+      color: cores.verde,
+      fontWeight: '600',
+      marginTop: theme.espaco.sm,
+      textAlign: 'center',
+    },
+    iotHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+    iotTitulo: { fontSize: 15, fontWeight: '700', color: cores.texto },
+    iotMsg: { fontSize: 14, color: cores.texto, lineHeight: 20 },
+    iotData: { fontSize: 12, color: cores.textoClaro, marginTop: 8 },
+  });

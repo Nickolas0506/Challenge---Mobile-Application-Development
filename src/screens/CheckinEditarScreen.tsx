@@ -11,12 +11,14 @@ import { useAtualizarCheckin, useCheckin, useRemoverCheckin } from '../hooks/use
 import { avisar, confirmar } from '../lib/confirmar';
 import type { AppStackParamList } from '../navigation/types';
 import type { HumorCheckin } from '../types/models';
-
-const HUMORES: HumorCheckin[] = ['otimo', 'bom', 'regular', 'ruim'];
+import { HUMORES } from '../constants/humores';
+import type { Cores } from '../constants/cores';
+import { useEstilos } from '../hooks/useEstilos';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'CheckinEditar'>;
 
 export default function CheckinEditarScreen({ navigation, route }: Props) {
+  const styles = useEstilos(criarEstilos);
   const { checkinId } = route.params;
   const { data, isLoading, isError, refetch } = useCheckin(checkinId);
   const atualizar = useAtualizarCheckin();
@@ -83,11 +85,13 @@ export default function CheckinEditarScreen({ navigation, route }: Props) {
       <View style={styles.grid}>
         {HUMORES.map((h) => (
           <Pressable
-            key={h}
-            style={[styles.chip, humor === h && styles.chipAtivo]}
-            onPress={() => setHumor(h)}
+            key={h.valor}
+            style={[styles.chip, humor === h.valor && styles.chipAtivo]}
+            onPress={() => setHumor(h.valor)}
           >
-            <Text style={[styles.chipTxt, humor === h && styles.chipTxtAtivo]}>{h}</Text>
+            <Text style={[styles.chipTxt, humor === h.valor && styles.chipTxtAtivo]}>
+              {h.emoji} {h.label}
+            </Text>
           </Pressable>
         ))}
       </View>
@@ -99,19 +103,20 @@ export default function CheckinEditarScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  titulo: { fontSize: 22, fontWeight: '800', color: theme.cores.texto },
-  sub: { color: theme.cores.textoClaro, marginBottom: theme.espaco.lg, marginTop: 6 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: theme.espaco.md },
-  chip: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: theme.raio.pill,
-    borderWidth: 1,
-    borderColor: theme.cores.borda,
-    backgroundColor: theme.cores.branco,
-  },
-  chipAtivo: { backgroundColor: theme.cores.verdeClaro, borderColor: theme.cores.verde },
-  chipTxt: { fontWeight: '700', color: theme.cores.textoClaro, textTransform: 'capitalize' },
-  chipTxtAtivo: { color: theme.cores.verdeEscuro },
-});
+const criarEstilos = (cores: Cores) =>
+  StyleSheet.create({
+    titulo: { fontSize: 22, fontWeight: '800', color: cores.texto },
+    sub: { color: cores.textoClaro, marginBottom: theme.espaco.lg, marginTop: 6 },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: theme.espaco.md },
+    chip: {
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      borderRadius: theme.raio.pill,
+      borderWidth: 1,
+      borderColor: cores.borda,
+      backgroundColor: cores.superficie,
+    },
+    chipAtivo: { backgroundColor: cores.verdeClaro, borderColor: cores.verde },
+    chipTxt: { fontWeight: '700', color: cores.textoClaro, textTransform: 'capitalize' },
+    chipTxtAtivo: { color: cores.verdeEscuro },
+  });

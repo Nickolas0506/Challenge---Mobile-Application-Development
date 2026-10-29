@@ -13,6 +13,9 @@ import { usePets, useRemoverPet } from '../hooks/usePets';
 import { confirmar } from '../lib/confirmar';
 import type { AppStackParamList, TabParamList } from '../navigation/types';
 import type { Pet } from '../types/models';
+import type { Cores } from '../constants/cores';
+import { useTema } from '../contexts/TemaContext';
+import { useEstilos } from '../hooks/useEstilos';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'MeuPet'>,
@@ -20,6 +23,8 @@ type Props = CompositeScreenProps<
 >;
 
 export default function MeuPetScreen({ navigation }: Props) {
+  const { cores } = useTema();
+  const styles = useEstilos(criarEstilos);
   const { data: pets, isLoading, isError, refetch, isRefetching } = usePets();
   const remover = useRemoverPet();
 
@@ -80,12 +85,12 @@ export default function MeuPetScreen({ navigation }: Props) {
                 style={styles.acao}
                 onPress={() => navigation.navigate('PetForm', { petId: item.id })}
               >
-                <Ionicons name="create-outline" size={18} color={theme.cores.verde} />
+                <Ionicons name="create-outline" size={18} color={cores.verde} />
                 <Text style={styles.acaoTxt}>Editar</Text>
               </Pressable>
               <Pressable style={styles.acao} onPress={() => confirmarExclusao(item)}>
-                <Ionicons name="trash-outline" size={18} color={theme.cores.vermelho} />
-                <Text style={[styles.acaoTxt, { color: theme.cores.vermelho }]}>Excluir</Text>
+                <Ionicons name="trash-outline" size={18} color={cores.vermelho} />
+                <Text style={[styles.acaoTxt, { color: cores.vermelho }]}>Excluir</Text>
               </Pressable>
             </View>
           </Card>
@@ -95,28 +100,29 @@ export default function MeuPetScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  fundo: { flex: 1, backgroundColor: theme.cores.fundo },
-  pad: { paddingHorizontal: theme.espaco.md },
-  lista: { padding: theme.espaco.md, paddingBottom: theme.espaco.xl, gap: theme.espaco.sm },
-  card: { marginTop: theme.espaco.sm },
-  row: { flexDirection: 'row', alignItems: 'center', gap: theme.espaco.md },
-  foto: { width: 56, height: 56, borderRadius: 28 },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: theme.cores.verdeClaro,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  letra: { fontSize: 22, fontWeight: '800', color: theme.cores.verde },
-  nome: { fontSize: 18, fontWeight: '800', color: theme.cores.texto },
-  info: { fontSize: 14, color: theme.cores.textoClaro, marginTop: 4 },
-  extra: { fontSize: 13, color: theme.cores.texto, marginTop: 4 },
-  acoes: { flexDirection: 'row', gap: theme.espaco.md, marginTop: theme.espaco.md },
-  acao: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 4 },
-  acaoTxt: { fontWeight: '700', color: theme.cores.verde },
-  vazio: { fontWeight: '700', fontSize: 16, textAlign: 'center' },
-  vazioSub: { textAlign: 'center', color: theme.cores.textoClaro, marginTop: 8 },
-});
+const criarEstilos = (cores: Cores) =>
+  StyleSheet.create({
+    fundo: { flex: 1, backgroundColor: cores.fundo },
+    pad: { paddingHorizontal: theme.espaco.md },
+    lista: { padding: theme.espaco.md, paddingBottom: theme.espaco.xl, gap: theme.espaco.sm },
+    card: { marginTop: theme.espaco.sm },
+    row: { flexDirection: 'row', alignItems: 'center', gap: theme.espaco.md },
+    foto: { width: 56, height: 56, borderRadius: 28 },
+    avatar: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: cores.verdeClaro,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    letra: { fontSize: 22, fontWeight: '800', color: cores.verde },
+    nome: { fontSize: 18, fontWeight: '800', color: cores.texto },
+    info: { fontSize: 14, color: cores.textoClaro, marginTop: 4 },
+    extra: { fontSize: 13, color: cores.texto, marginTop: 4 },
+    acoes: { flexDirection: 'row', gap: theme.espaco.md, marginTop: theme.espaco.md },
+    acao: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 4 },
+    acaoTxt: { fontWeight: '700', color: cores.verde },
+    vazio: { fontWeight: '700', fontSize: 16, textAlign: 'center' },
+    vazioSub: { textAlign: 'center', color: cores.textoClaro, marginTop: 8 },
+  });

@@ -11,13 +11,10 @@ import { useCriarCheckin } from '../hooks/useCheckins';
 import { usePets } from '../hooks/usePets';
 import type { AppStackParamList, TabParamList } from '../navigation/types';
 import type { HumorCheckin } from '../types/models';
-
-const HUMORES: { valor: HumorCheckin; emoji: string; label: string; cor: string }[] = [
-  { valor: 'otimo', emoji: '😄', label: 'Otimo', cor: '#2A9D8F' },
-  { valor: 'bom', emoji: '🙂', label: 'Bom', cor: theme.cores.verde },
-  { valor: 'regular', emoji: '😐', label: 'Regular', cor: theme.cores.laranja },
-  { valor: 'ruim', emoji: '😟', label: 'Ruim', cor: theme.cores.vermelho },
-];
+import { HUMORES } from '../constants/humores';
+import type { Cores } from '../constants/cores';
+import { useTema } from '../contexts/TemaContext';
+import { useEstilos } from '../hooks/useEstilos';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'Checkin'>,
@@ -25,6 +22,8 @@ type Props = CompositeScreenProps<
 >;
 
 export default function CheckinScreen({ navigation }: Props) {
+  const { cores } = useTema();
+  const styles = useEstilos(criarEstilos);
   const { data: pets } = usePets();
   const criar = useCriarCheckin();
   const [selecionado, setSelecionado] = useState<HumorCheckin | null>(null);
@@ -63,13 +62,13 @@ export default function CheckinScreen({ navigation }: Props) {
             key={h.valor}
             style={[
               styles.humorBtn,
-              selecionado === h.valor && { borderColor: h.cor, backgroundColor: theme.cores.verdeClaro },
+              selecionado === h.valor && { borderColor: cores[h.cor], backgroundColor: cores.verdeClaro },
             ]}
             onPress={() => void registrar(h.valor)}
             disabled={criar.isPending}
           >
             {criar.isPending && selecionado === h.valor ? (
-              <ActivityIndicator color={h.cor} />
+              <ActivityIndicator color={cores[h.cor]} />
             ) : (
               <>
                 <Text style={styles.emoji}>{h.emoji}</Text>
@@ -88,7 +87,7 @@ export default function CheckinScreen({ navigation }: Props) {
             value={obs}
             onChangeText={setObs}
             placeholder="Ex: comeu bem, brincou..."
-            placeholderTextColor={theme.cores.textoClaro}
+            placeholderTextColor={cores.textoClaro}
             multiline
           />
         </Card>
@@ -101,43 +100,44 @@ export default function CheckinScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: theme.espaco.md,
-    gap: theme.espaco.sm,
-    justifyContent: 'space-between',
-  },
-  humorBtn: {
-    width: '48%',
-    backgroundColor: theme.cores.branco,
-    borderRadius: theme.raio.md,
-    paddingVertical: 24,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: theme.cores.borda,
-    ...theme.sombra.card,
-  },
-  emoji: { fontSize: 40 },
-  humorLabel: { marginTop: 8, fontWeight: '700', fontSize: 16, color: theme.cores.texto },
-  corpo: { padding: theme.espaco.md },
-  obsTitulo: { fontWeight: '600', marginBottom: 8, color: theme.cores.texto },
-  input: {
-    backgroundColor: theme.cores.fundo,
-    borderRadius: theme.raio.sm,
-    padding: 12,
-    minHeight: 80,
-    fontSize: 15,
-    textAlignVertical: 'top',
-    color: theme.cores.texto,
-  },
-  erro: { marginTop: 12, color: theme.cores.vermelho, fontWeight: '600' },
-  aviso: {
-    marginTop: theme.espaco.md,
-    fontSize: 13,
-    color: theme.cores.textoClaro,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-});
+const criarEstilos = (cores: Cores) =>
+  StyleSheet.create({
+    grid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      paddingHorizontal: theme.espaco.md,
+      gap: theme.espaco.sm,
+      justifyContent: 'space-between',
+    },
+    humorBtn: {
+      width: '48%',
+      backgroundColor: cores.superficie,
+      borderRadius: theme.raio.md,
+      paddingVertical: 24,
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: cores.borda,
+      ...theme.sombra.card,
+    },
+    emoji: { fontSize: 40 },
+    humorLabel: { marginTop: 8, fontWeight: '700', fontSize: 16, color: cores.texto },
+    corpo: { padding: theme.espaco.md },
+    obsTitulo: { fontWeight: '600', marginBottom: 8, color: cores.texto },
+    input: {
+      backgroundColor: cores.fundo,
+      borderRadius: theme.raio.sm,
+      padding: 12,
+      minHeight: 80,
+      fontSize: 15,
+      textAlignVertical: 'top',
+      color: cores.texto,
+    },
+    erro: { marginTop: 12, color: cores.vermelho, fontWeight: '600' },
+    aviso: {
+      marginTop: theme.espaco.md,
+      fontSize: 13,
+      color: cores.textoClaro,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+  });

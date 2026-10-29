@@ -5,6 +5,7 @@ import { Platform, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { queryClient } from './src/config/queryClient';
 import { AuthProvider } from './src/contexts/AuthContext';
+import { TemaProvider, useTema } from './src/contexts/TemaContext';
 import AppNavigator from './src/navigation/AppNavigator';
 
 if (Platform.OS === 'web' && typeof document !== 'undefined') {
@@ -18,15 +19,22 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
   }
 }
 
+function BarraStatus() {
+  const { escuro } = useTema();
+  return <StatusBar style={escuro ? 'light' : 'dark'} />;
+}
+
 export default function App() {
   return (
     <View style={styles.root}>
       <SafeAreaProvider style={styles.root}>
         <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <StatusBar style="light" />
-            <AppNavigator />
-          </AuthProvider>
+          <TemaProvider>
+            <AuthProvider>
+              <BarraStatus />
+              <AppNavigator />
+            </AuthProvider>
+          </TemaProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
     </View>

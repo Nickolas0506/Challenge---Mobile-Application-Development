@@ -1,5 +1,7 @@
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { theme } from '../constants/theme';
+import type { Cores } from '../constants/cores';
+import { useEstilos } from '../hooks/useEstilos';
 
 type Props = {
   children: React.ReactNode;
@@ -8,6 +10,7 @@ type Props = {
 };
 
 export function Card({ children, style, destaque }: Props) {
+  const styles = useEstilos(criarEstilos);
   return (
     <View style={[styles.card, destaque && styles.destaque, style]}>
       {children}
@@ -15,16 +18,17 @@ export function Card({ children, style, destaque }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: theme.cores.branco,
-    borderRadius: theme.raio.md,
-    padding: theme.espaco.md,
-    ...theme.sombra.card,
-  },
-  destaque: {
-    borderWidth: 2,
-    borderColor: theme.cores.verde,
-    backgroundColor: theme.cores.verdeClaro,
-  },
-});
+const criarEstilos = (cores: Cores) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: cores.superficie,
+      borderRadius: theme.raio.md,
+      padding: theme.espaco.md,
+      ...theme.sombra.card,
+    },
+    destaque: {
+      borderWidth: 2,
+      borderColor: cores.verde,
+      backgroundColor: cores.verdeClaro,
+    },
+  });

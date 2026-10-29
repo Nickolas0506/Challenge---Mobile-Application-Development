@@ -1,5 +1,8 @@
 import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { theme } from '../constants/theme';
+import type { Cores } from '../constants/cores';
+import { useTema } from '../contexts/TemaContext';
+import { useEstilos } from '../hooks/useEstilos';
 
 type Props = {
   label: string;
@@ -12,6 +15,8 @@ type Props = {
 };
 
 export function Campo({ label, value, onChange, placeholder, seguro, multiline, teclado }: Props) {
+  const { cores } = useTema();
+  const styles = useEstilos(criarEstilos);
   return (
     <View style={styles.box}>
       <Text style={styles.label}>{label}</Text>
@@ -20,7 +25,7 @@ export function Campo({ label, value, onChange, placeholder, seguro, multiline, 
         value={value}
         onChangeText={onChange}
         placeholder={placeholder}
-        placeholderTextColor={theme.cores.textoClaro}
+        placeholderTextColor={cores.textoClaro}
         secureTextEntry={seguro}
         multiline={multiline}
         keyboardType={teclado}
@@ -33,22 +38,23 @@ export function Campo({ label, value, onChange, placeholder, seguro, multiline, 
   );
 }
 
-const styles = StyleSheet.create({
-  box: { marginBottom: theme.espaco.md },
-  label: { fontSize: 13, fontWeight: '600', marginBottom: 6, color: theme.cores.texto },
-  input: {
-    backgroundColor: theme.cores.fundo,
-    borderWidth: 1,
-    borderColor: theme.cores.borda,
-    borderRadius: theme.raio.sm,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: theme.cores.texto,
-  },
-  multiline: { minHeight: 88, textAlignVertical: 'top' },
-  inputWeb: {
-    outlineStyle: 'solid',
-    outlineWidth: 0,
-  },
-});
+const criarEstilos = (cores: Cores) =>
+  StyleSheet.create({
+    box: { marginBottom: theme.espaco.md },
+    label: { fontSize: 13, fontWeight: '600', marginBottom: 6, color: cores.texto },
+    input: {
+      backgroundColor: cores.fundo,
+      borderWidth: 1,
+      borderColor: cores.borda,
+      borderRadius: theme.raio.sm,
+      paddingHorizontal: 14,
+      paddingVertical: 14,
+      fontSize: 16,
+      color: cores.texto,
+    },
+    multiline: { minHeight: 88, textAlignVertical: 'top' },
+    inputWeb: {
+      outlineStyle: 'solid',
+      outlineWidth: 0,
+    },
+  });

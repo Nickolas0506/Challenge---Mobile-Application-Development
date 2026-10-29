@@ -10,6 +10,8 @@ import { theme } from '../constants/theme';
 import { useAlertas, useAtualizarAlerta, useCriarAlerta } from '../hooks/useAlertas';
 import type { AppStackParamList } from '../navigation/types';
 import type { TipoAlerta } from '../types/models';
+import type { Cores } from '../constants/cores';
+import { useEstilos } from '../hooks/useEstilos';
 
 const TIPOS = [
   { value: 'checkin', label: 'Rotina / check-in' },
@@ -21,6 +23,7 @@ const TIPOS = [
 type Props = NativeStackScreenProps<AppStackParamList, 'AlertaForm'>;
 
 export default function AlertaFormScreen({ navigation, route }: Props) {
+  const styles = useEstilos(criarEstilos);
   const alertaId = route.params?.alertaId;
   const { data: alertas, isLoading } = useAlertas();
   const criar = useCriarAlerta();
@@ -108,7 +111,8 @@ export default function AlertaFormScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  titulo: { fontSize: 22, fontWeight: '800', color: theme.cores.texto },
-  sub: { color: theme.cores.textoClaro, marginBottom: theme.espaco.lg, marginTop: 6 },
-});
+const criarEstilos = (cores: Cores) =>
+  StyleSheet.create({
+    titulo: { fontSize: 22, fontWeight: '800', color: cores.texto },
+    sub: { color: cores.textoClaro, marginBottom: theme.espaco.lg, marginTop: 6 },
+  });

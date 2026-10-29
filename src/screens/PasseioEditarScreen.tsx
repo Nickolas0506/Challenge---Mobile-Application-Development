@@ -11,10 +11,14 @@ import { theme } from '../constants/theme';
 import { useAtualizarPasseio, usePasseio, useRemoverPasseio } from '../hooks/usePasseios';
 import { avisar, confirmar } from '../lib/confirmar';
 import type { AppStackParamList } from '../navigation/types';
+import type { Cores } from '../constants/cores';
+import { useTema } from '../contexts/TemaContext';
+import { useEstilos } from '../hooks/useEstilos';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'PasseioEditar'>;
 
 export default function PasseioEditarScreen({ navigation, route }: Props) {
+  const styles = useEstilos(criarEstilos);
   const { passeioId } = route.params;
   const { data, isLoading, isError, refetch } = usePasseio(passeioId);
   const atualizar = useAtualizarPasseio();
@@ -120,22 +124,25 @@ function Linha({
   valor: boolean;
   onChange: (v: boolean) => void;
 }) {
+  const { cores } = useTema();
+  const styles = useEstilos(criarEstilos);
   return (
     <View style={styles.switchRow}>
       <Text style={styles.switchLabel}>{label}</Text>
-      <Switch value={valor} onValueChange={onChange} trackColor={{ true: theme.cores.verde }} />
+      <Switch value={valor} onValueChange={onChange} trackColor={{ true: cores.verde }} />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  titulo: { fontSize: 22, fontWeight: '800', color: theme.cores.texto, marginBottom: theme.espaco.md },
-  switchCard: { paddingVertical: 4 },
-  switchRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  switchLabel: { fontSize: 16, fontWeight: '600', color: theme.cores.texto },
-});
+const criarEstilos = (cores: Cores) =>
+  StyleSheet.create({
+    titulo: { fontSize: 22, fontWeight: '800', color: cores.texto, marginBottom: theme.espaco.md },
+    switchCard: { paddingVertical: 4 },
+    switchRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 10,
+    },
+    switchLabel: { fontSize: 16, fontWeight: '600', color: cores.texto },
+  });

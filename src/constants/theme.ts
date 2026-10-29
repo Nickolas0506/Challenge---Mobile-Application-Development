@@ -1,7 +1,5 @@
-import { cores } from './cores';
-
+// medidas compartilhadas; as cores vem do TemaContext (claro/escuro)
 export const theme = {
-  cores,
   espaco: {
     xs: 4,
     sm: 8,
@@ -17,17 +15,11 @@ export const theme = {
   },
   sombra: {
     card: {
-      shadowColor: '#1A2E2A',
+      shadowColor: '#000',
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.08,
       shadowRadius: 8,
       elevation: 3,
     },
-  },
-  fonte: {
-    titulo: { fontSize: 26, fontWeight: '800' as const, color: cores.texto },
-    subtitulo: { fontSize: 15, color: cores.textoClaro, lineHeight: 22 },
-    secao: { fontSize: 13, fontWeight: '700' as const, color: cores.textoClaro, letterSpacing: 0.5 },
-    cardTitulo: { fontSize: 17, fontWeight: '700' as const, color: cores.texto },
   },
 };

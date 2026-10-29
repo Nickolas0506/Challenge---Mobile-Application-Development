@@ -1,5 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { theme } from '../constants/theme';
+import type { Cores } from '../constants/cores';
+import { useEstilos } from '../hooks/useEstilos';
 
 type Props = {
   titulo: string;
@@ -7,6 +9,7 @@ type Props = {
 };
 
 export function TituloSecao({ titulo, dica }: Props) {
+  const styles = useEstilos(criarEstilos);
   return (
     <View style={styles.wrap}>
       <Text style={styles.titulo}>{titulo.toUpperCase()}</Text>
@@ -15,8 +18,9 @@ export function TituloSecao({ titulo, dica }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { marginBottom: theme.espaco.sm, marginTop: theme.espaco.md },
-  titulo: theme.fonte.secao,
-  dica: { fontSize: 13, color: theme.cores.textoClaro, marginTop: 2 },
-});
+const criarEstilos = (cores: Cores) =>
+  StyleSheet.create({
+    wrap: { marginBottom: theme.espaco.sm, marginTop: theme.espaco.md },
+    titulo: { fontSize: 13, fontWeight: '700', color: cores.textoClaro, letterSpacing: 0.5 },
+    dica: { fontSize: 13, color: cores.textoClaro, marginTop: 2 },
+  });

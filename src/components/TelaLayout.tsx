@@ -1,6 +1,8 @@
 import { forwardRef } from 'react';
 import { ScrollView, StyleSheet, View, type ScrollViewProps } from 'react-native';
 import { theme } from '../constants/theme';
+import type { Cores } from '../constants/cores';
+import { useEstilos } from '../hooks/useEstilos';
 
 type Props = ScrollViewProps & {
   children: React.ReactNode;
@@ -12,6 +14,7 @@ export const TelaLayout = forwardRef<ScrollView, Props>(function TelaLayout(
   { children, semPadding, contentContainerStyle, keyboardShouldPersistTaps, ...rest },
   ref
 ) {
+  const styles = useEstilos(criarEstilos);
   return (
     <View style={styles.fundo}>
       <ScrollView
@@ -29,9 +32,10 @@ export const TelaLayout = forwardRef<ScrollView, Props>(function TelaLayout(
   );
 });
 
-const styles = StyleSheet.create({
-  fundo: { flex: 1, backgroundColor: theme.cores.fundo },
-  scroll: { padding: theme.espaco.md, paddingBottom: theme.espaco.xl },
-  semPad: { padding: 0 },
-});
+const criarEstilos = (cores: Cores) =>
+  StyleSheet.create({
+    fundo: { flex: 1, backgroundColor: cores.fundo },
+    scroll: { padding: theme.espaco.md, paddingBottom: theme.espaco.xl },
+    semPad: { padding: 0 },
+  });
 

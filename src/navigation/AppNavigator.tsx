@@ -1,16 +1,19 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, NavigationContainer, type Theme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { BarraAbas } from '../components/BarraAbas';
 import { LogoSolin } from '../components/LogoSolin';
+import { COR_MARCA, type Cores } from '../constants/cores';
 import { theme } from '../constants/theme';
 import { useAuth } from '../contexts/AuthContext';
+import { useTema } from '../contexts/TemaContext';
 import AlertasScreen from '../screens/AlertasScreen';
 import AlertaFormScreen from '../screens/AlertaFormScreen';
 import CadastroScreen from '../screens/CadastroScreen';
 import CheckinEditarScreen from '../screens/CheckinEditarScreen';
 import CheckinScreen from '../screens/CheckinScreen';
+import ConfiguracoesScreen from '../screens/ConfiguracoesScreen';
 import HistoricoScreen from '../screens/HistoricoScreen';
 import InicioScreen from '../screens/InicioScreen';
 import LoginScreen from '../screens/LoginScreen';
@@ -26,12 +29,30 @@ const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
-const headerPadrao = {
-  headerStyle: { backgroundColor: theme.cores.verde },
-  headerTintColor: '#fff',
-  headerTitleStyle: { fontWeight: '700' as const, fontSize: 17 },
-  contentStyle: { backgroundColor: theme.cores.fundo },
-};
+function opcoesHeader(cores: Cores) {
+  return {
+    headerStyle: { backgroundColor: cores.verde },
+    headerTintColor: '#fff',
+    headerTitleStyle: { fontWeight: '700' as const, fontSize: 17 },
+    contentStyle: { backgroundColor: cores.fundo },
+  };
+}
+
+function temaNavegacao(escuro: boolean, cores: Cores): Theme {
+  const base = escuro ? DarkTheme : DefaultTheme;
+  return {
+    ...base,
+    colors: {
+      ...base.colors,
+      primary: cores.verde,
+      background: cores.fundo,
+      card: cores.superficie,
+      text: cores.texto,
+      border: cores.borda,
+      notification: cores.vermelho,
+    },
+  };
+}
 
 function AbasPrincipais() {
   return (
@@ -63,8 +84,9 @@ function RotasPublicas() {
 }
 
 function RotasProtegidas() {
+  const { cores } = useTema();
   return (
-    <AppStack.Navigator screenOptions={{ ...headerPadrao, headerShown: false }}>
+    <AppStack.Navigator screenOptions={{ ...opcoesHeader(cores), headerShown: false }}>
       <AppStack.Screen name="MainTabs" component={AbasPrincipais} />
       <AppStack.Screen
         name="Orientacao"
@@ -91,12 +113,18 @@ function RotasProtegidas() {
         component={AlertaFormScreen}
         options={{ headerShown: true, title: 'Alerta' }}
       />
+      <AppStack.Screen
+        name="Configuracoes"
+        component={ConfiguracoesScreen}
+        options={{ headerShown: true, title: 'Configuracoes' }}
+      />
     </AppStack.Navigator>
   );
 }
 
 export default function AppNavigator() {
   const { usuario, carregando } = useAuth();
+  const { cores, escuro } = useTema();
 
   if (carregando) {
     return (
@@ -109,7 +137,7 @@ export default function AppNavigator() {
   }
 
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer ref={navigationRef} theme={temaNavegacao(escuro, cores)}>
       {usuario ? <RotasProtegidas /> : <RotasPublicas />}
     </NavigationContainer>
   );
@@ -120,7 +148,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: theme.cores.verde,
+    backgroundColor: COR_MARCA,
   },
   loadingSpinner: { marginTop: theme.espaco.lg },
   loadingTxt: { marginTop: 12, color: 'rgba(255,255,255,0.9)' },

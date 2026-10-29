@@ -3,6 +3,9 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../constants/theme';
+import type { Cores } from '../constants/cores';
+import { useTema } from '../contexts/TemaContext';
+import { useEstilos } from '../hooks/useEstilos';
 
 type IconeNome = keyof typeof Ionicons.glyphMap;
 
@@ -25,6 +28,8 @@ const ICONES: Record<string, { ativo: IconeNome; inativo: IconeNome }> = {
 };
 
 export function BarraAbas({ state, navigation }: BottomTabBarProps) {
+  const { cores } = useTema();
+  const styles = useEstilos(criarEstilos);
   const insets = useSafeAreaInsets();
 
   return (
@@ -51,7 +56,7 @@ export function BarraAbas({ state, navigation }: BottomTabBarProps) {
               <Ionicons
                 name={focado ? icones.ativo : icones.inativo}
                 size={24}
-                color={focado ? theme.cores.verde : theme.cores.textoClaro}
+                color={focado ? cores.verde : cores.textoClaro}
               />
             </View>
             <Text style={[styles.rotulo, focado && styles.rotuloAtivo]} numberOfLines={1}>
@@ -64,53 +69,54 @@ export function BarraAbas({ state, navigation }: BottomTabBarProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    backgroundColor: theme.cores.branco,
-    borderTopWidth: 1,
-    borderTopColor: theme.cores.borda,
-    paddingTop: 6,
-    paddingHorizontal: 2,
-    minHeight: 64,
-    ...theme.sombra.card,
-  },
-  item: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 0,
-    paddingVertical: 6,
-    paddingHorizontal: 2,
-    borderRadius: theme.raio.sm,
-    marginHorizontal: 1,
-    ...(Platform.OS === 'web' ? { cursor: 'pointer' as const } : {}),
-  },
-  itemAtivo: {
-    backgroundColor: theme.cores.verdeClaro,
-  },
-  itemPressed: { opacity: 0.75 },
-  iconeBox: {
-    width: 44,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 2,
-  },
-  iconeBoxAtivo: {
-    backgroundColor: theme.cores.branco,
-  },
-  rotulo: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: theme.cores.textoClaro,
-    textAlign: 'center',
-    maxWidth: '100%',
-  },
-  rotuloAtivo: {
-    color: theme.cores.verdeEscuro,
-    fontWeight: '800',
-  },
-});
+const criarEstilos = (cores: Cores) =>
+  StyleSheet.create({
+    wrap: {
+      flexDirection: 'row',
+      alignItems: 'stretch',
+      backgroundColor: cores.superficie,
+      borderTopWidth: 1,
+      borderTopColor: cores.borda,
+      paddingTop: 6,
+      paddingHorizontal: 2,
+      minHeight: 64,
+      ...theme.sombra.card,
+    },
+    item: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minWidth: 0,
+      paddingVertical: 6,
+      paddingHorizontal: 2,
+      borderRadius: theme.raio.sm,
+      marginHorizontal: 1,
+      ...(Platform.OS === 'web' ? { cursor: 'pointer' as const } : {}),
+    },
+    itemAtivo: {
+      backgroundColor: cores.verdeClaro,
+    },
+    itemPressed: { opacity: 0.75 },
+    iconeBox: {
+      width: 44,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 2,
+    },
+    iconeBoxAtivo: {
+      backgroundColor: cores.superficie,
+    },
+    rotulo: {
+      fontSize: 10,
+      fontWeight: '600',
+      color: cores.textoClaro,
+      textAlign: 'center',
+      maxWidth: '100%',
+    },
+    rotuloAtivo: {
+      color: cores.verdeEscuro,
+      fontWeight: '800',
+    },
+  });

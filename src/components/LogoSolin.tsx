@@ -1,5 +1,6 @@
 import { Image, StyleSheet, View, type ImageStyle, type StyleProp, type ViewStyle } from 'react-native';
-import { theme } from '../constants/theme';
+import { COR_MARCA, type Cores } from '../constants/cores';
+import { useEstilos } from '../hooks/useEstilos';
 
 const logo = require('../../assets/logo-solin.png');
 
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export function LogoSolin({ largura = 250, style, imagemStyle }: Props) {
+  const styles = useEstilos(criarEstilos);
   const altura = Math.round(largura * PROPORCAO);
 
   return (
@@ -26,7 +28,8 @@ export function LogoSolin({ largura = 250, style, imagemStyle }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { alignItems: 'center', backgroundColor: theme.cores.verde },
-  img: { maxWidth: '100%', backgroundColor: theme.cores.verde },
-});
+const criarEstilos = (cores: Cores) =>
+  StyleSheet.create({
+    wrap: { alignItems: 'center', backgroundColor: COR_MARCA },
+    img: { maxWidth: '100%', backgroundColor: COR_MARCA },
+  });

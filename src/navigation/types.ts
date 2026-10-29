@@ -22,6 +22,7 @@ export type AppStackParamList = {
   CheckinEditar: { checkinId: string };
   PasseioEditar: { passeioId: string };
   AlertaForm: { alertaId?: string } | undefined;
+  Configuracoes: undefined;
 };
 
 export type RootStackParamList = AuthStackParamList & AppStackParamList;

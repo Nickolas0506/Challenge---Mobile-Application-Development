@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { theme } from '../constants/theme';
+import type { Cores } from '../constants/cores';
+import { useEstilos } from '../hooks/useEstilos';
 
 type Props = {
   icone: keyof typeof Ionicons.glyphMap;
@@ -21,6 +23,7 @@ export function ResumoDiaCard({
   corIcone,
   onPress,
 }: Props) {
+  const styles = useEstilos(criarEstilos);
   const conteudo = (
     <>
       <View style={[styles.iconeWrap, { backgroundColor: corIcone + '22' }]}>
@@ -45,41 +48,42 @@ export function ResumoDiaCard({
   return <View style={[styles.card, { backgroundColor: corFundo }]}>{conteudo}</View>;
 }
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: theme.raio.md,
-    padding: theme.espaco.md,
-    marginBottom: theme.espaco.sm,
-    ...theme.sombra.card,
-  },
-  iconeWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: theme.espaco.md,
-  },
-  textos: { flex: 1 },
-  titulo: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: theme.cores.textoClaro,
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-  },
-  valor: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: theme.cores.texto,
-    marginTop: 2,
-  },
-  desc: {
-    fontSize: 14,
-    color: theme.cores.texto,
-    marginTop: 4,
-    lineHeight: 20,
-  },
-});
+const criarEstilos = (cores: Cores) =>
+  StyleSheet.create({
+    card: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderRadius: theme.raio.md,
+      padding: theme.espaco.md,
+      marginBottom: theme.espaco.sm,
+      ...theme.sombra.card,
+    },
+    iconeWrap: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: theme.espaco.md,
+    },
+    textos: { flex: 1 },
+    titulo: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: cores.textoClaro,
+      textTransform: 'uppercase',
+      letterSpacing: 0.4,
+    },
+    valor: {
+      fontSize: 28,
+      fontWeight: '800',
+      color: cores.texto,
+      marginTop: 2,
+    },
+    desc: {
+      fontSize: 14,
+      color: cores.texto,
+      marginTop: 4,
+      lineHeight: 20,
+    },
+  });
