@@ -33,7 +33,13 @@
         }
       ],
       "expo-font",
-      "expo-status-bar"
+      "expo-status-bar",
+      [
+        "expo-notifications",
+        {
+          "color": "#2E7D6B"
+        }
+      ]
     ]
   }
 }

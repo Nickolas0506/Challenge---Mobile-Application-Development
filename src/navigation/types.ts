@@ -12,7 +12,7 @@ export type TabParamList = {
   Checkin: undefined;
   Passeio: undefined;
   Historico: undefined;
-  Alertas: undefined;
+  Alertas: { destaqueId?: string } | undefined;
 };
 
 export type AppStackParamList = {

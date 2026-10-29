@@ -24,6 +24,8 @@ export function useCriarEventoIot() {
       eventoIotService.criar({ ...dados, userId: usuario!.uid }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['eventosIot'] });
+      // a API pode ter gerado um alerta automatico a partir deste registro
+      void queryClient.invalidateQueries({ queryKey: ['alertas'] });
     },
   });
 }

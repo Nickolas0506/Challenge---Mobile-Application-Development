@@ -5,7 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../constants/theme';
 import type { Cores } from '../constants/cores';
 import { useTema } from '../contexts/TemaContext';
+import { useAlertas } from '../hooks/useAlertas';
 import { useEstilos } from '../hooks/useEstilos';
+import { contarNaoLidos } from '../lib/alertas';
 
 type IconeNome = keyof typeof Ionicons.glyphMap;
 
@@ -31,6 +33,7 @@ export function BarraAbas({ state, navigation }: BottomTabBarProps) {
   const { cores } = useTema();
   const styles = useEstilos(criarEstilos);
   const insets = useSafeAreaInsets();
+  const naoLidos = contarNaoLidos(useAlertas().data);
 
   return (
     <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, 10) }]}>
@@ -58,6 +61,11 @@ export function BarraAbas({ state, navigation }: BottomTabBarProps) {
                 size={24}
                 color={focado ? cores.verde : cores.textoClaro}
               />
+              {route.name === 'Alertas' && naoLidos > 0 ? (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeTxt}>{naoLidos > 9 ? '9+' : naoLidos}</Text>
+                </View>
+              ) : null}
             </View>
             <Text style={[styles.rotulo, focado && styles.rotuloAtivo]} numberOfLines={1}>
               {rotulo}
@@ -105,6 +113,19 @@ const criarEstilos = (cores: Cores) =>
       justifyContent: 'center',
       marginBottom: 2,
     },
+    badge: {
+      position: 'absolute',
+      top: -2,
+      right: 2,
+      minWidth: 18,
+      height: 18,
+      borderRadius: 9,
+      paddingHorizontal: 4,
+      backgroundColor: cores.vermelho,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    badgeTxt: { color: '#fff', fontSize: 10, fontWeight: '800' },
     iconeBoxAtivo: {
       backgroundColor: cores.superficie,
     },

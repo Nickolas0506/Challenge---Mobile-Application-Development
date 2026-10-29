@@ -10,6 +10,7 @@ import { EstadoCarregando } from '../components/EstadoCarregando';
 import { EstadoErro } from '../components/EstadoErro';
 import { theme } from '../constants/theme';
 import { alertaParaInput, useAlertas, useAtualizarAlerta, useRemoverAlerta } from '../hooks/useAlertas';
+import { contarNaoLidos } from '../lib/alertas';
 import { avisar, confirmar } from '../lib/confirmar';
 import { useCriarEventoIot } from '../hooks/useEventosIot';
 import type { AppStackParamList, TabParamList } from '../navigation/types';
@@ -30,7 +31,7 @@ type Props = CompositeScreenProps<
   NativeStackScreenProps<AppStackParamList>
 >;
 
-export default function AlertasScreen({ navigation }: Props) {
+export default function AlertasScreen({ navigation, route }: Props) {
   const { cores } = useTema();
   const styles = useEstilos(criarEstilos);
   const { data: alertas, isLoading, isError, refetch, isRefetching } = useAlertas();
@@ -38,7 +39,8 @@ export default function AlertasScreen({ navigation }: Props) {
   const remover = useRemoverAlerta();
   const criarIot = useCriarEventoIot();
 
-  const pendentes = (alertas ?? []).filter((a) => !a.lido).length;
+  const pendentes = contarNaoLidos(alertas);
+  const destaqueId = route.params?.destaqueId;
 
   function marcarLido(item: Alerta) {
     if (item.lido) return;
@@ -112,7 +114,7 @@ export default function AlertasScreen({ navigation }: Props) {
         renderItem={({ item }) => {
           const cfg = TIPO_CONFIG[item.tipo];
           return (
-            <Card style={[styles.card, !item.lido && styles.naoLido]}>
+            <Card style={[styles.card, !item.lido && styles.naoLido, item.id === destaqueId && styles.destaque]}>
               <Pressable onPress={() => marcarLido(item)}>
                 <View style={styles.row}>
                   <View style={[styles.iconeBox, !item.lido && styles.iconePendente]}>
@@ -150,6 +152,7 @@ const criarEstilos = (cores: Cores) =>
     topoAcoes: { marginBottom: theme.espaco.md },
     card: { marginBottom: theme.espaco.sm },
     naoLido: { borderWidth: 2, borderColor: cores.verde },
+    destaque: { borderWidth: 2, borderColor: cores.laranja, backgroundColor: cores.avisoFundo },
     row: { flexDirection: 'row', alignItems: 'flex-start', gap: theme.espaco.sm },
     iconeBox: {
       width: 44,

@@ -8,6 +8,7 @@ import { COR_MARCA, type Cores } from '../constants/cores';
 import { theme } from '../constants/theme';
 import { useAuth } from '../contexts/AuthContext';
 import { useTema } from '../contexts/TemaContext';
+import { useNotificacoes } from '../hooks/useNotificacoes';
 import AlertasScreen from '../screens/AlertasScreen';
 import AlertaFormScreen from '../screens/AlertaFormScreen';
 import CadastroScreen from '../screens/CadastroScreen';
@@ -85,6 +86,7 @@ function RotasPublicas() {
 
 function RotasProtegidas() {
   const { cores } = useTema();
+  useNotificacoes();
   return (
     <AppStack.Navigator screenOptions={{ ...opcoesHeader(cores), headerShown: false }}>
       <AppStack.Screen name="MainTabs" component={AbasPrincipais} />

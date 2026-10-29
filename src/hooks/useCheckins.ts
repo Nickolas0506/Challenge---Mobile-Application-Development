@@ -32,6 +32,8 @@ export function useCriarCheckin() {
       checkinService.criar({ ...dados, userId: usuario!.uid }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['checkins'] });
+      // a API pode ter gerado um alerta automatico a partir deste registro
+      void queryClient.invalidateQueries({ queryKey: ['alertas'] });
     },
   });
 }
