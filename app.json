@@ -2,7 +2,7 @@
   "expo": {
     "name": "SOLIN",
     "slug": "solin-mobile",
-    "version": "1.0.0",
+    "version": "1.4.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -12,7 +12,8 @@
       "backgroundColor": "#2E7D6B"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "br.com.fiap.solin"
     },
     "android": {
       "adaptiveIcon": {
@@ -20,7 +21,9 @@
         "backgroundColor": "#2E7D6B"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "br.com.fiap.solin",
+      "versionCode": 4
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -40,6 +43,10 @@
           "color": "#2E7D6B"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "apiUrlProducao": "https://solin-api-production.up.railway.app",
+      "repositorio": "https://github.com/Nickolas0506/Challenge---Mobile-Application-Development"
+    }
   }
 }

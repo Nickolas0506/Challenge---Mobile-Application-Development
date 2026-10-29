@@ -23,6 +23,7 @@ import OrientacaoScreen from '../screens/OrientacaoScreen';
 import PasseioEditarScreen from '../screens/PasseioEditarScreen';
 import PasseioScreen from '../screens/PasseioScreen';
 import PetFormScreen from '../screens/PetFormScreen';
+import SobreScreen from '../screens/SobreScreen';
 import { navigationRef } from './ref';
 import type { AppStackParamList, AuthStackParamList, TabParamList } from './types';
 
@@ -76,10 +77,16 @@ function AbasPrincipais() {
 }
 
 function RotasPublicas() {
+  const { cores } = useTema();
   return (
     <AuthStack.Navigator screenOptions={{ headerShown: false }}>
       <AuthStack.Screen name="Login" component={LoginScreen} />
       <AuthStack.Screen name="Cadastro" component={CadastroScreen} />
+      <AuthStack.Screen
+        name="Sobre"
+        component={SobreScreen}
+        options={{ ...opcoesHeader(cores), headerShown: true, title: 'Sobre o App' }}
+      />
     </AuthStack.Navigator>
   );
 }
@@ -119,6 +126,11 @@ function RotasProtegidas() {
         name="Configuracoes"
         component={ConfiguracoesScreen}
         options={{ headerShown: true, title: 'Configuracoes' }}
+      />
+      <AppStack.Screen
+        name="Sobre"
+        component={SobreScreen}
+        options={{ headerShown: true, title: 'Sobre o App' }}
       />
     </AppStack.Navigator>
   );

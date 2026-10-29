@@ -16,6 +16,7 @@ import { Campo } from '../components/Campo';
 import { Card } from '../components/Card';
 import { LogoSolin } from '../components/LogoSolin';
 import { theme } from '../constants/theme';
+import { versaoApp } from '../config/versao';
 import { useAuth } from '../contexts/AuthContext';
 import { validarEmail, validarSenha } from '../lib/validacao';
 import type { AuthStackParamList } from '../navigation/types';
@@ -97,6 +98,9 @@ export default function LoginScreen({ navigation }: Props) {
                   Nao tem conta? <Text style={styles.linkForte}>Cadastre-se</Text>
                 </Text>
               </Pressable>
+              <Pressable style={styles.sobreBox} onPress={() => navigation.navigate('Sobre')}>
+                <Text style={styles.sobre}>Sobre o App · v{versaoApp.versao} ({versaoApp.commitCurto})</Text>
+              </Pressable>
             </Card>
           </View>
         </ScrollView>
@@ -126,5 +130,7 @@ const criarEstilos = (cores: Cores) =>
     erro: { color: cores.vermelho, marginBottom: theme.espaco.sm, fontWeight: '600' },
     linkBox: { marginTop: theme.espaco.md, paddingVertical: 8, alignItems: 'center' },
     link: { color: cores.textoClaro, fontSize: 14 },
+    sobreBox: { paddingVertical: 6, alignItems: 'center' },
+    sobre: { color: cores.textoClaro, fontSize: 12 },
     linkForte: { color: cores.verde, fontWeight: '800' },
   });

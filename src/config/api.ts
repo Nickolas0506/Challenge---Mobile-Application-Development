@@ -1,5 +1,6 @@
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import { versaoApp } from './versao';
 
 function hostDaLan(): string | null {
   const candidatos = [
@@ -16,9 +17,14 @@ function hostDaLan(): string | null {
   return null;
 }
 
-/** URL da API Spring Boot. Celular usa o IP da LAN do Expo. */
+/**
+ * URL da API Spring Boot.
+ * - APK publicado (release): sempre a API em producao no Railway.
+ * - Desenvolvimento: EXPO_PUBLIC_API_URL ou o IP da LAN do Expo na porta 8080.
+ */
 export function getApiUrl(): string {
   const env = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, '');
+  if (!__DEV__ && versaoApp.apiUrlProducao) return versaoApp.apiUrlProducao;
   if (env) return env;
 
   const lan = hostDaLan();

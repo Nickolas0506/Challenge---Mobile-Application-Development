@@ -8,6 +8,7 @@ import { TelaLayout } from '../components/TelaLayout';
 import { TituloSecao } from '../components/TituloSecao';
 import type { Cores } from '../constants/cores';
 import { theme } from '../constants/theme';
+import { versaoApp } from '../config/versao';
 import { useTema } from '../contexts/TemaContext';
 import { useEstilos } from '../hooks/useEstilos';
 import { usePreferenciaLembrete, useSalvarPreferenciaLembrete } from '../hooks/usePreferenciaLembrete';
@@ -25,7 +26,7 @@ const HORARIOS_LEMBRETE = [8, 12, 18, 20, 22];
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Configuracoes'>;
 
-export default function ConfiguracoesScreen(_props: Props) {
+export default function ConfiguracoesScreen({ navigation }: Props) {
   const { cores, preferencia, definirPreferencia } = useTema();
   const styles = useEstilos(criarEstilos);
   const { data: lembrete = LEMBRETE_PADRAO } = usePreferenciaLembrete();
@@ -119,6 +120,16 @@ export default function ConfiguracoesScreen(_props: Props) {
           );
         })}
       </Card>
+
+      <TituloSecao titulo="Sobre" />
+      <Card>
+        <Pressable style={styles.linha} onPress={() => navigation.navigate('Sobre')}>
+          <Ionicons name="information-circle-outline" size={22} color={cores.verde} />
+          <Text style={styles.linhaTxt}>Sobre o App</Text>
+          <Text style={styles.versao}>v{versaoApp.versao} · {versaoApp.commitCurto}</Text>
+          <Ionicons name="chevron-forward" size={18} color={cores.textoClaro} />
+        </Pressable>
+      </Card>
       <View style={styles.rodape} />
     </TelaLayout>
   );
@@ -147,5 +158,6 @@ const criarEstilos = (cores: Cores) =>
     chipAtivo: { backgroundColor: cores.verdeClaro, borderColor: cores.verde },
     chipTxt: { fontWeight: '700', color: cores.textoClaro },
     chipTxtAtivo: { color: cores.verdeEscuro },
+    versao: { fontSize: 12, color: cores.textoClaro, fontFamily: 'monospace' },
     rodape: { height: theme.espaco.lg },
   });

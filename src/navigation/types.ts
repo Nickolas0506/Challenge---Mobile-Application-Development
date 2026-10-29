@@ -4,6 +4,7 @@ import type { HumorCheckin } from '../types/models';
 export type AuthStackParamList = {
   Login: undefined;
   Cadastro: undefined;
+  Sobre: undefined;
 };
 
 export type TabParamList = {
@@ -23,6 +24,7 @@ export type AppStackParamList = {
   PasseioEditar: { passeioId: string };
   AlertaForm: { alertaId?: string } | undefined;
   Configuracoes: undefined;
+  Sobre: undefined;
 };
 
 export type RootStackParamList = AuthStackParamList & AppStackParamList;
