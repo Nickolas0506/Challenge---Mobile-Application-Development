@@ -18,7 +18,3 @@ export function validarNome(nome: string): string | null {
   return null;
 }
 
-/** Mantido para telas antigas; o cadastro agora aceita qualquer e-mail valido. */
-export function validarEmailGmail(email: string): string | null {
-  return validarEmail(email);
-}

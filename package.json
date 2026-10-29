@@ -5,7 +5,7 @@
   "scripts": {
     "start": "expo start --go --lan",
     "web": "expo start --web",
-    "celular": "node expo-qr.js",
+    "celular": "node scripts/expo-qr.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "api": "mvn -f api/pom.xml spring-boot:run",

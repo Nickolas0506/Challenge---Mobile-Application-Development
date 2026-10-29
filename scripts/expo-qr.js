@@ -8,7 +8,7 @@ const os = require('os');
 const path = require('path');
 const QRCode = require('qrcode');
 
-const ROOT = __dirname;
+const ROOT = path.join(__dirname, '..');
 const PORT = 8081;
 const HTML = path.join(ROOT, 'qr.html');
 

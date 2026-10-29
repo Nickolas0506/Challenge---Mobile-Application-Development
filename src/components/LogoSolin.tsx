@@ -1,7 +1,7 @@
 import { Image, StyleSheet, View, type ImageStyle, type StyleProp, type ViewStyle } from 'react-native';
 import { theme } from '../constants/theme';
 
-const logo = require('../assets/logo-solin.png');
+const logo = require('../../assets/logo-solin.png');
 
 const PROPORCAO = 646 / 757;
 
