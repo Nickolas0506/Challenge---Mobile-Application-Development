@@ -12,9 +12,11 @@ import java.util.List;
 public class PasseioService {
 
     private final PasseioRepository passeios;
+    private final MonitorSaudeService monitor;
 
-    public PasseioService(PasseioRepository passeios) {
+    public PasseioService(PasseioRepository passeios, MonitorSaudeService monitor) {
         this.passeios = passeios;
+        this.monitor = monitor;
     }
 
     public List<Passeio> listar(UsuarioLogado usuario) {
@@ -30,7 +32,9 @@ public class PasseioService {
         Passeio passeio = new Passeio();
         passeio.setUserId(usuario.uid());
         preencher(passeio, pedido);
-        return passeios.save(passeio);
+        Passeio salvo = passeios.save(passeio);
+        monitor.analisarPasseio(salvo);
+        return salvo;
     }
 
     public Passeio atualizar(UsuarioLogado usuario, String id, PasseioRequest pedido) {

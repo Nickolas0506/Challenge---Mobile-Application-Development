@@ -12,9 +12,11 @@ import java.util.List;
 public class CheckinService {
 
     private final CheckinRepository checkins;
+    private final MonitorSaudeService monitor;
 
-    public CheckinService(CheckinRepository checkins) {
+    public CheckinService(CheckinRepository checkins, MonitorSaudeService monitor) {
         this.checkins = checkins;
+        this.monitor = monitor;
     }
 
     public List<Checkin> listar(UsuarioLogado usuario) {
@@ -30,7 +32,9 @@ public class CheckinService {
         Checkin checkin = new Checkin();
         checkin.setUserId(usuario.uid());
         preencher(checkin, pedido);
-        return checkins.save(checkin);
+        Checkin salvo = checkins.save(checkin);
+        monitor.analisarCheckin(salvo);
+        return salvo;
     }
 
     public Checkin atualizar(UsuarioLogado usuario, String id, CheckinRequest pedido) {

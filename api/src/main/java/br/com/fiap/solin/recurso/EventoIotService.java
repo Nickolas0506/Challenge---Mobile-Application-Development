@@ -12,9 +12,11 @@ import java.util.List;
 public class EventoIotService {
 
     private final EventoIotRepository eventos;
+    private final MonitorSaudeService monitor;
 
-    public EventoIotService(EventoIotRepository eventos) {
+    public EventoIotService(EventoIotRepository eventos, MonitorSaudeService monitor) {
         this.eventos = eventos;
+        this.monitor = monitor;
     }
 
     public List<EventoIot> listar(UsuarioLogado usuario) {
@@ -27,7 +29,9 @@ public class EventoIotService {
         evento.setData(pedido.data());
         evento.setTipo(pedido.tipo());
         evento.setMensagem(pedido.mensagem());
-        return eventos.save(evento);
+        EventoIot salvo = eventos.save(evento);
+        monitor.analisarEventoIot(salvo);
+        return salvo;
     }
 
     public EventoIot atualizar(UsuarioLogado usuario, String id, EventoIotRequest pedido) {
