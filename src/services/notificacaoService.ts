@@ -14,10 +14,13 @@ const DIAS_AGENDADOS = 7;
 
 let configurado = false;
 
+// notificacoes locais so existem no Android/iOS; no navegador o servico nao faz nada
+const suportado = Platform.OS !== 'web';
+
 export const notificacaoService = {
   /** Mostra a notificacao mesmo com o app aberto e cria os canais do Android. */
   async configurar() {
-    if (configurado) return;
+    if (configurado || !suportado) return;
     configurado = true;
     Notifications.setNotificationHandler({
       handleNotification: async () => ({
@@ -41,11 +44,13 @@ export const notificacaoService = {
   },
 
   async temPermissao() {
+    if (!suportado) return false;
     const { granted } = await Notifications.getPermissionsAsync();
     return granted;
   },
 
   async pedirPermissao() {
+    if (!suportado) return false;
     if (await this.temPermissao()) return true;
     const { granted } = await Notifications.requestPermissionsAsync();
     return granted;
@@ -53,6 +58,7 @@ export const notificacaoService = {
 
   /** Notificacao imediata para um alerta que a API acabou de gerar. */
   async notificarAlerta(alerta: Alerta) {
+    if (!suportado) return;
     const dados: DadosNotificacao = { destino: 'alerta', alertaId: alerta.id };
     await Notifications.scheduleNotificationAsync({
       identifier: `alerta-${alerta.id}`,
@@ -66,6 +72,7 @@ export const notificacaoService = {
    * Se o check-in de hoje ja foi feito, o lembrete de hoje nao e agendado.
    */
   async agendarLembretesCheckin(hora: number, minuto: number, checkinFeitoHoje: boolean, nomePet: string) {
+    if (!suportado) return;
     await this.cancelarLembretesCheckin();
     const agora = new Date();
     const dados: DadosNotificacao = { destino: 'checkin' };
@@ -94,6 +101,7 @@ export const notificacaoService = {
   },
 
   async cancelarLembretesCheckin() {
+    if (!suportado) return;
     const agendadas = await Notifications.getAllScheduledNotificationsAsync();
     await Promise.all(
       agendadas
@@ -104,6 +112,7 @@ export const notificacaoService = {
 
   /** Chama `aoTocar` quando o tutor toca numa notificacao (inclusive se ela abriu o app). */
   ouvirToques(aoTocar: (dados: DadosNotificacao) => void) {
+    if (!suportado) return () => {};
     const tratar = (resposta: Notifications.NotificationResponse | null) => {
       const dados = resposta?.notification.request.content.data as DadosNotificacao | undefined;
       if (dados?.destino) {
