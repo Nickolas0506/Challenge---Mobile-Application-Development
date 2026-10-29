@@ -1,26 +1,30 @@
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
-import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Botao } from '../components/Botao';
 import { Campo } from '../components/Campo';
 import { Card } from '../components/Card';
 import { EstadoCarregando } from '../components/EstadoCarregando';
 import { Seletor } from '../components/Seletor';
 import { TelaLayout } from '../components/TelaLayout';
-import {
-  OPCOES_ESPECIE,
-  especieFormularioParaSalvar,
-  especieSalvaParaFormulario,
-  rotuloEspecie,
-} from '../constants/especies';
-import { theme } from '../constants/theme';
-import { useAtualizarPet, useCriarPet, usePet } from '../hooks/usePets';
-import type { AppStackParamList } from '../navigation/types';
 import type { Cores } from '../constants/cores';
+import { OPCOES_ESPECIE } from '../constants/especies';
+import { theme } from '../constants/theme';
 import { useTema } from '../contexts/TemaContext';
 import { useEstilos } from '../hooks/useEstilos';
+import { useFormulario } from '../hooks/useFormulario';
+import { useAtualizarPet, useCriarPet, usePet } from '../hooks/usePets';
+import { avisar } from '../lib/confirmar';
+import {
+  FORMULARIO_PET_VAZIO,
+  formularioParaPet,
+  petParaFormulario,
+  previaPet,
+  validarFormularioPet,
+} from '../lib/pet';
+import type { AppStackParamList } from '../navigation/types';
+import { galeriaService } from '../services/galeriaService';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'PetForm'>;
 
@@ -31,72 +35,31 @@ export default function PetFormScreen({ navigation, route }: Props) {
   const petQuery = usePet(petId);
   const criar = useCriarPet();
   const atualizar = useAtualizarPet();
-
-  const [nome, setNome] = useState('');
-  const [especieValor, setEspecieValor] = useState('');
-  const [especieOutro, setEspecieOutro] = useState('');
-  const [raca, setRaca] = useState('');
-  const [peso, setPeso] = useState('');
-  const [idade, setIdade] = useState('');
-  const [caracteristicas, setCaracteristicas] = useState('');
-  const [foto, setFoto] = useState<string | undefined>();
+  const { valores, alterar, redefinir } = useFormulario(FORMULARIO_PET_VAZIO);
   const [erro, setErro] = useState('');
 
   useEffect(() => {
-    const pet = petQuery.data;
-    if (!pet) return;
-    const esp = especieSalvaParaFormulario(pet.especie);
-    setNome(pet.nome);
-    setEspecieValor(esp.valor);
-    setEspecieOutro(esp.outro);
-    setRaca(pet.raca === 'SRD' ? '' : pet.raca);
-    setPeso(pet.peso.replace(/\s*kg\s*/i, '').replace('-', ''));
-    setIdade(pet.idade ?? '');
-    setCaracteristicas(pet.caracteristicas ?? '');
-    setFoto(pet.foto);
-  }, [petQuery.data]);
+    if (petQuery.data) redefinir(petParaFormulario(petQuery.data));
+  }, [petQuery.data, redefinir]);
 
   async function escolherFoto() {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) {
-      setErro('Permissao da galeria negada.');
-      return;
+    try {
+      const uri = await galeriaService.escolherFoto();
+      if (uri) alterar('foto', uri);
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Nao foi possivel abrir a galeria.');
     }
-    const res = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.6,
-    });
-    if (!res.canceled) setFoto(res.assets[0].uri);
   }
 
   async function salvar() {
     setErro('');
-    const especieTexto = especieFormularioParaSalvar(especieValor, especieOutro);
-    if (!nome.trim()) {
-      setErro('Informe o nome do pet.');
-      return;
-    }
-    if (!especieValor) {
-      setErro('Selecione a especie.');
-      return;
-    }
-    if (especieValor === 'outro' && !especieOutro.trim()) {
-      setErro('Informe qual e o animal em "Outro".');
+    const erroValidacao = validarFormularioPet(valores);
+    if (erroValidacao) {
+      setErro(erroValidacao);
       return;
     }
 
-    const dados = {
-      nome: nome.trim(),
-      especie: especieTexto,
-      raca: raca.trim() || 'SRD',
-      peso: peso.trim() || '-',
-      idade: idade.trim() || undefined,
-      caracteristicas: caracteristicas.trim() || undefined,
-      foto,
-      createdAt: petQuery.data?.createdAt ?? new Date().toISOString(),
-    };
-
+    const dados = formularioParaPet(valores, petQuery.data?.createdAt);
     try {
       if (petId) {
         await atualizar.mutateAsync({ id: petId, dados });
@@ -107,15 +70,11 @@ export default function PetFormScreen({ navigation, route }: Props) {
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Erro ao salvar na API.';
       setErro(msg);
-      Alert.alert('Erro', msg);
+      avisar('Erro', msg);
     }
   }
 
-  const especiePreview =
-    especieValor === 'outro' ? especieOutro || 'Outro' : especieValor ? rotuloEspecie(especieValor) : '';
-  const preview = [nome, especiePreview, raca || 'SRD', peso && `${peso} kg`, idade]
-    .filter(Boolean)
-    .join(' · ');
+  const preview = previaPet(valores);
 
   if (petId && petQuery.isLoading) {
     return (
@@ -137,40 +96,46 @@ export default function PetFormScreen({ navigation, route }: Props) {
       </Card>
 
       <Text style={styles.secao}>Dados basicos</Text>
-      <Campo label="Nome do pet *" value={nome} onChange={setNome} placeholder="Ex: Luna" />
+      <Campo label="Nome do pet *" value={valores.nome} onChange={(v) => alterar('nome', v)} placeholder="Ex: Luna" />
       <Seletor
         label="Especie"
-        valor={especieValor}
+        valor={valores.especieValor}
         opcoes={OPCOES_ESPECIE}
-        onChange={setEspecieValor}
+        onChange={(v) => alterar('especieValor', v)}
         placeholder="Toque para escolher"
         obrigatorio
       />
-      {especieValor === 'outro' ? (
+      {valores.especieValor === 'outro' ? (
         <Campo
           label="Qual animal? *"
-          value={especieOutro}
-          onChange={setEspecieOutro}
+          value={valores.especieOutro}
+          onChange={(v) => alterar('especieOutro', v)}
           placeholder="Ex: Furao, Porquinho-da-india..."
         />
       ) : null}
-      <Campo label="Raca" value={raca} onChange={setRaca} placeholder="SRD, Persa, Golden..." />
-      <Campo label="Peso (kg)" value={peso} onChange={setPeso} placeholder="4.5" teclado="decimal-pad" />
-      <Campo label="Idade" value={idade} onChange={setIdade} placeholder="2 anos, 8 meses..." />
+      <Campo label="Raca" value={valores.raca} onChange={(v) => alterar('raca', v)} placeholder="SRD, Persa, Golden..." />
+      <Campo
+        label="Peso (kg)"
+        value={valores.peso}
+        onChange={(v) => alterar('peso', v)}
+        placeholder="4.5"
+        teclado="decimal-pad"
+      />
+      <Campo label="Idade" value={valores.idade} onChange={(v) => alterar('idade', v)} placeholder="2 anos, 8 meses..." />
 
       <Text style={styles.secao}>Outras caracteristicas</Text>
       <Campo
         label="Observacoes do pet"
-        value={caracteristicas}
-        onChange={setCaracteristicas}
+        value={valores.caracteristicas}
+        onChange={(v) => alterar('caracteristicas', v)}
         placeholder="Castrado, alergias, medicamentos..."
         multiline
       />
 
       <Text style={styles.secao}>Foto (opcional)</Text>
       <Pressable style={styles.fotoBox} onPress={() => void escolherFoto()}>
-        {foto ? (
-          <Image source={{ uri: foto }} style={styles.foto} />
+        {valores.foto ? (
+          <Image source={{ uri: valores.foto }} style={styles.foto} />
         ) : (
           <View style={styles.fotoVazio}>
             <Ionicons name="camera-outline" size={32} color={cores.verde} />

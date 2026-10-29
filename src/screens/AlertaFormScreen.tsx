@@ -1,6 +1,6 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
-import { Alert, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { Botao } from '../components/Botao';
 import { Campo } from '../components/Campo';
 import { EstadoCarregando } from '../components/EstadoCarregando';
@@ -8,6 +8,7 @@ import { Seletor } from '../components/Seletor';
 import { TelaLayout } from '../components/TelaLayout';
 import { theme } from '../constants/theme';
 import { useAlertas, useAtualizarAlerta, useCriarAlerta } from '../hooks/useAlertas';
+import { avisar } from '../lib/confirmar';
 import type { AppStackParamList } from '../navigation/types';
 import type { TipoAlerta } from '../types/models';
 import type { Cores } from '../constants/cores';
@@ -43,7 +44,7 @@ export default function AlertaFormScreen({ navigation, route }: Props) {
 
   async function salvar() {
     if (!titulo.trim() || !mensagem.trim() || !tipo) {
-      Alert.alert('Preencha os campos', 'Titulo, mensagem e tipo sao obrigatorios.');
+      avisar('Preencha os campos', 'Titulo, mensagem e tipo sao obrigatorios.');
       return;
     }
     try {
@@ -70,7 +71,7 @@ export default function AlertaFormScreen({ navigation, route }: Props) {
       }
       navigation.goBack();
     } catch (e) {
-      Alert.alert('Erro', e instanceof Error ? e.message : 'Falha ao salvar alerta.');
+      avisar('Erro', e instanceof Error ? e.message : 'Falha ao salvar alerta.');
     }
   }
 

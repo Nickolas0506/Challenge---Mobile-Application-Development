@@ -8,20 +8,13 @@ import { Card } from '../components/Card';
 import { EstadoCarregando } from '../components/EstadoCarregando';
 import { EstadoErro } from '../components/EstadoErro';
 import { theme } from '../constants/theme';
-import { useCheckins } from '../hooks/useCheckins';
-import { useEventosIot } from '../hooks/useEventosIot';
-import { usePasseios } from '../hooks/usePasseios';
-import { usePets } from '../hooks/usePets';
+import { formatarDataHora } from '../lib/datas';
+import type { ItemHistorico } from '../lib/historico';
 import type { AppStackParamList, TabParamList } from '../navigation/types';
 import type { Cores } from '../constants/cores';
 import { useTema } from '../contexts/TemaContext';
 import { useEstilos } from '../hooks/useEstilos';
-
-type ItemHistorico =
-  | { tipo: 'pet'; data: string; id: string; titulo: string; detalhe: string }
-  | { tipo: 'checkin'; data: string; id: string; titulo: string; detalhe: string }
-  | { tipo: 'passeio'; data: string; id: string; titulo: string; detalhe: string }
-  | { tipo: 'iot'; data: string; id: string; titulo: string; detalhe: string };
+import { useHistorico } from '../hooks/useHistorico';
 
 const ICONES = {
   pet: 'paw' as const,
@@ -37,15 +30,6 @@ const LABELS = {
   iot: 'Sensor',
 };
 
-function formatarData(iso: string) {
-  return new Date(iso).toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
 type Props = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'Historico'>,
   NativeStackScreenProps<AppStackParamList>
@@ -54,63 +38,12 @@ type Props = CompositeScreenProps<
 export default function HistoricoScreen({ navigation }: Props) {
   const { cores } = useTema();
   const styles = useEstilos(criarEstilos);
-  const petsQuery = usePets();
-  const checkinsQuery = useCheckins();
-  const passeiosQuery = usePasseios();
-  const iotQuery = useEventosIot();
-
-  const carregando =
-    petsQuery.isLoading || checkinsQuery.isLoading || passeiosQuery.isLoading || iotQuery.isLoading;
-  const erro = petsQuery.isError || checkinsQuery.isError || passeiosQuery.isError || iotQuery.isError;
-
-  const itens: ItemHistorico[] = [
-    ...(petsQuery.data ?? []).map((p) => ({
-      tipo: 'pet' as const,
-      data: p.createdAt ?? new Date().toISOString(),
-      id: p.id,
-      titulo: p.nome,
-      detalhe: [p.especie, p.raca, p.peso !== '-' ? `${p.peso} kg` : null, p.idade]
-        .filter(Boolean)
-        .join(' · '),
-    })),
-    ...(checkinsQuery.data ?? []).map((c) => ({
-      tipo: 'checkin' as const,
-      data: c.data,
-      id: c.id,
-      titulo: 'Check-in',
-      detalhe: `Humor: ${c.humor}${c.observacao ? ` — ${c.observacao}` : ''}`,
-    })),
-    ...(passeiosQuery.data ?? []).map((p) => ({
-      tipo: 'passeio' as const,
-      data: p.data,
-      id: p.id,
-      titulo: 'Passeio',
-      detalhe: `${p.duracaoMin} min · Agua: ${p.bebeuAgua ? 'sim' : 'nao'} · Urina: ${
-        p.urinou ? (p.urinaNormal ? 'ok' : 'alterada') : 'nao'
-      }`,
-    })),
-    ...(iotQuery.data ?? []).map((e) => ({
-      tipo: 'iot' as const,
-      data: e.data,
-      id: e.id,
-      titulo: 'Sensor',
-      detalhe: e.mensagem,
-    })),
-  ].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+  const { itens, carregando, erro, atualizando, atualizar } = useHistorico();
 
   function abrir(item: ItemHistorico) {
     if (item.tipo === 'checkin') navigation.navigate('CheckinEditar', { checkinId: item.id });
     if (item.tipo === 'passeio') navigation.navigate('PasseioEditar', { passeioId: item.id });
     if (item.tipo === 'pet') navigation.navigate('PetForm', { petId: item.id });
-  }
-
-  async function atualizar() {
-    await Promise.all([
-      petsQuery.refetch(),
-      checkinsQuery.refetch(),
-      passeiosQuery.refetch(),
-      iotQuery.refetch(),
-    ]);
   }
 
   return (
@@ -133,7 +66,7 @@ export default function HistoricoScreen({ navigation }: Props) {
         keyExtractor={(item) => `${item.tipo}-${item.id}`}
         contentContainerStyle={styles.lista}
         refreshControl={
-          <RefreshControl refreshing={checkinsQuery.isRefetching} onRefresh={() => void atualizar()} />
+          <RefreshControl refreshing={atualizando} onRefresh={() => void atualizar()} />
         }
         ListEmptyComponent={
           !carregando && !erro ? (
@@ -154,7 +87,7 @@ export default function HistoricoScreen({ navigation }: Props) {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.itemTipo}>{LABELS[item.tipo]}</Text>
-                  <Text style={styles.itemData}>{formatarData(item.data)}</Text>
+                  <Text style={styles.itemData}>{formatarDataHora(item.data)}</Text>
                 </View>
                 {item.tipo !== 'iot' ? (
                   <Ionicons name="chevron-forward" size={18} color={cores.textoClaro} />

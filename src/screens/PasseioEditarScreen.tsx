@@ -1,19 +1,24 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useEffect, useState } from 'react';
-import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { StyleSheet, Text } from 'react-native';
 import { Botao } from '../components/Botao';
-import { Campo } from '../components/Campo';
-import { Card } from '../components/Card';
+import { CamposPasseio } from '../components/CamposPasseio';
 import { EstadoCarregando } from '../components/EstadoCarregando';
 import { EstadoErro } from '../components/EstadoErro';
 import { TelaLayout } from '../components/TelaLayout';
+import type { Cores } from '../constants/cores';
 import { theme } from '../constants/theme';
+import { useEstilos } from '../hooks/useEstilos';
+import { useFormulario } from '../hooks/useFormulario';
 import { useAtualizarPasseio, usePasseio, useRemoverPasseio } from '../hooks/usePasseios';
 import { avisar, confirmar } from '../lib/confirmar';
+import {
+  FORMULARIO_PASSEIO_VAZIO,
+  formularioParaPasseio,
+  passeioParaFormulario,
+  validarFormularioPasseio,
+} from '../lib/passeio';
 import type { AppStackParamList } from '../navigation/types';
-import type { Cores } from '../constants/cores';
-import { useTema } from '../contexts/TemaContext';
-import { useEstilos } from '../hooks/useEstilos';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'PasseioEditar'>;
 
@@ -23,50 +28,27 @@ export default function PasseioEditarScreen({ navigation, route }: Props) {
   const { data, isLoading, isError, refetch } = usePasseio(passeioId);
   const atualizar = useAtualizarPasseio();
   const remover = useRemoverPasseio();
-
-  const [duracao, setDuracao] = useState('');
-  const [agua, setAgua] = useState(true);
-  const [urinou, setUrinou] = useState(true);
-  const [urinaNormal, setUrinaNormal] = useState(true);
-  const [fezes, setFezes] = useState(true);
-  const [comportamentoNormal, setComportamentoNormal] = useState(true);
-  const [obs, setObs] = useState('');
+  const { valores, alterar, redefinir } = useFormulario(FORMULARIO_PASSEIO_VAZIO);
 
   useEffect(() => {
-    if (!data) return;
-    setDuracao(data.duracaoMin);
-    setAgua(data.bebeuAgua);
-    setUrinou(data.urinou);
-    setUrinaNormal(data.urinaNormal);
-    setFezes(data.fezesNormais);
-    setComportamentoNormal(data.comportamentoNormal);
-    setObs(data.observacao);
-  }, [data]);
+    if (data) redefinir(passeioParaFormulario(data));
+  }, [data, redefinir]);
 
   async function salvar() {
     if (!data) return;
-    if (!duracao.trim()) {
-      Alert.alert('Falta a duracao', 'Informe os minutos.');
+    const erro = validarFormularioPasseio(valores);
+    if (erro) {
+      avisar('Confira o registro', erro);
       return;
     }
     try {
       await atualizar.mutateAsync({
         id: data.id,
-        dados: {
-          petId: data.petId,
-          data: data.data,
-          duracaoMin: duracao.trim(),
-          bebeuAgua: agua,
-          urinou,
-          urinaNormal: urinou ? urinaNormal : false,
-          fezesNormais: fezes,
-          comportamentoNormal,
-          observacao: obs.trim(),
-        },
+        dados: formularioParaPasseio(valores, { petId: data.petId, data: data.data }),
       });
       navigation.goBack();
     } catch (e) {
-      Alert.alert('Erro', e instanceof Error ? e.message : 'Falha ao atualizar.');
+      avisar('Erro', e instanceof Error ? e.message : 'Falha ao atualizar.');
     }
   }
 
@@ -100,49 +82,14 @@ export default function PasseioEditarScreen({ navigation, route }: Props) {
   return (
     <TelaLayout>
       <Text style={styles.titulo}>Editar passeio</Text>
-      <Campo label="Duracao (minutos)" value={duracao} onChange={setDuracao} teclado="numeric" />
-      <Card style={styles.switchCard}>
-        <Linha label="Bebeu agua?" valor={agua} onChange={setAgua} />
-        <Linha label="Urinou?" valor={urinou} onChange={setUrinou} />
-        {urinou ? <Linha label="Urina normal?" valor={urinaNormal} onChange={setUrinaNormal} /> : null}
-        <Linha label="Fezes normais?" valor={fezes} onChange={setFezes} />
-        <Linha label="Comportamento normal?" valor={comportamentoNormal} onChange={setComportamentoNormal} />
-      </Card>
-      <Campo label="Observacoes" value={obs} onChange={setObs} multiline />
+      <CamposPasseio valores={valores} alterar={alterar} />
       <Botao texto="Salvar alteracoes" onPress={() => void salvar()} carregando={atualizar.isPending} />
       <Botao texto="Excluir passeio" onPress={excluir} perigo carregando={remover.isPending} />
     </TelaLayout>
   );
 }
 
-function Linha({
-  label,
-  valor,
-  onChange,
-}: {
-  label: string;
-  valor: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  const { cores } = useTema();
-  const styles = useEstilos(criarEstilos);
-  return (
-    <View style={styles.switchRow}>
-      <Text style={styles.switchLabel}>{label}</Text>
-      <Switch value={valor} onValueChange={onChange} trackColor={{ true: cores.verde }} />
-    </View>
-  );
-}
-
 const criarEstilos = (cores: Cores) =>
   StyleSheet.create({
     titulo: { fontSize: 22, fontWeight: '800', color: cores.texto, marginBottom: theme.espaco.md },
-    switchCard: { paddingVertical: 4 },
-    switchRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingVertical: 10,
-    },
-    switchLabel: { fontSize: 16, fontWeight: '600', color: cores.texto },
   });

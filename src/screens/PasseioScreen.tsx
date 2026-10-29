@@ -1,74 +1,54 @@
-import { useNavigation } from '@react-navigation/native';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import { useState } from 'react';
-import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { StyleSheet, Text } from 'react-native';
 import { Botao } from '../components/Botao';
 import { CabecalhoTela } from '../components/CabecalhoTela';
-import { Campo } from '../components/Campo';
+import { CamposPasseio } from '../components/CamposPasseio';
 import { Card } from '../components/Card';
 import { TelaLayout } from '../components/TelaLayout';
+import type { Cores } from '../constants/cores';
 import { theme } from '../constants/theme';
+import { useEstilos } from '../hooks/useEstilos';
+import { useFormulario } from '../hooks/useFormulario';
 import { useCriarPasseio } from '../hooks/usePasseios';
 import { usePets } from '../hooks/usePets';
-import type { TabParamList } from '../navigation/types';
-import type { Cores } from '../constants/cores';
-import { useTema } from '../contexts/TemaContext';
-import { useEstilos } from '../hooks/useEstilos';
+import { avisar } from '../lib/confirmar';
+import {
+  FORMULARIO_PASSEIO_VAZIO,
+  formularioParaPasseio,
+  resumoPasseio,
+  validarFormularioPasseio,
+} from '../lib/passeio';
+import type { AppStackParamList, TabParamList } from '../navigation/types';
 
-function simNao(valor: boolean) {
-  return valor ? 'sim' : 'nao';
-}
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<TabParamList, 'Passeio'>,
+  NativeStackScreenProps<AppStackParamList>
+>;
 
-export default function PasseioScreen() {
-  const { cores } = useTema();
+export default function PasseioScreen({ navigation }: Props) {
   const styles = useEstilos(criarEstilos);
-  const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
   const { data: pets } = usePets();
   const criar = useCriarPasseio();
-  const [duracao, setDuracao] = useState('');
-  const [agua, setAgua] = useState(true);
-  const [urinou, setUrinou] = useState(true);
-  const [urinaNormal, setUrinaNormal] = useState(true);
-  const [fezes, setFezes] = useState(true);
-  const [comportamentoNormal, setComportamentoNormal] = useState(true);
-  const [obs, setObs] = useState('');
-
-  function resetFormulario() {
-    setDuracao('');
-    setObs('');
-    setAgua(true);
-    setUrinou(true);
-    setUrinaNormal(true);
-    setFezes(true);
-    setComportamentoNormal(true);
-  }
+  const { valores, alterar, redefinir } = useFormulario(FORMULARIO_PASSEIO_VAZIO);
 
   async function salvar() {
-    if (!duracao.trim()) {
-      Alert.alert('Falta a duracao', 'Informe quantos minutos durou o passeio.');
+    const erro = validarFormularioPasseio(valores);
+    if (erro) {
+      avisar('Confira o registro', erro);
       return;
     }
     try {
-      await criar.mutateAsync({
-        petId: pets?.[0]?.id,
-        data: new Date().toISOString(),
-        duracaoMin: duracao.trim(),
-        bebeuAgua: agua,
-        urinou,
-        urinaNormal: urinou ? urinaNormal : false,
-        fezesNormais: fezes,
-        comportamentoNormal,
-        observacao: obs.trim(),
-      });
-      Alert.alert('Salvo', 'Passeio registrado na API. Veja na aba Historico.');
-      resetFormulario();
+      await criar.mutateAsync(
+        formularioParaPasseio(valores, { petId: pets?.[0]?.id, data: new Date().toISOString() })
+      );
+      avisar('Salvo', 'Passeio registrado na API. Veja na aba Historico.');
+      redefinir(FORMULARIO_PASSEIO_VAZIO);
     } catch (e) {
-      Alert.alert('Erro', e instanceof Error ? e.message : 'Falha ao salvar o passeio.');
+      avisar('Erro', e instanceof Error ? e.message : 'Falha ao salvar o passeio.');
     }
   }
-
-  const minutos = duracao.trim() || '—';
-  const resumoUrina = urinou ? `Urina: ${urinaNormal ? 'normal' : 'alterada'}` : 'Urina: nao urinou';
 
   return (
     <TelaLayout keyboardShouldPersistTaps="always">
@@ -78,79 +58,15 @@ export default function PasseioScreen() {
         onVoltarInicio={() => navigation.navigate('Inicio')}
       />
 
-      <Campo
-        label="Duracao (minutos)"
-        value={duracao}
-        onChange={setDuracao}
-        placeholder="20"
-        teclado="numeric"
-      />
-
-      <Card style={styles.switchCard}>
-        <View style={styles.switchRow}>
-          <View style={styles.switchTextos}>
-            <Text style={styles.switchLabel}>Bebeu agua?</Text>
-            <Text style={styles.switchDica}>Durante ou logo apos o passeio</Text>
-          </View>
-          <Switch value={agua} onValueChange={setAgua} trackColor={{ true: cores.verde }} />
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.switchRow}>
-          <View style={styles.switchTextos}>
-            <Text style={styles.switchLabel}>Urinou no passeio?</Text>
-            <Text style={styles.switchDica}>Registrou xixi durante a caminhada</Text>
-          </View>
-          <Switch value={urinou} onValueChange={setUrinou} trackColor={{ true: cores.verde }} />
-        </View>
-        {urinou ? (
-          <>
-            <View style={styles.divider} />
-            <View style={styles.switchRow}>
-              <View style={styles.switchTextos}>
-                <Text style={styles.switchLabel}>Urina normal?</Text>
-                <Text style={styles.switchDica}>Cor, frequencia e quantidade habituais</Text>
-              </View>
-              <Switch
-                value={urinaNormal}
-                onValueChange={setUrinaNormal}
-                trackColor={{ true: cores.verde }}
-              />
-            </View>
-          </>
-        ) : null}
-        <View style={styles.divider} />
-        <View style={styles.switchRow}>
-          <View style={styles.switchTextos}>
-            <Text style={styles.switchLabel}>Fezes normais?</Text>
-            <Text style={styles.switchDica}>Consistencia e aspecto habituais</Text>
-          </View>
-          <Switch value={fezes} onValueChange={setFezes} trackColor={{ true: cores.verde }} />
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.switchRow}>
-          <View style={styles.switchTextos}>
-            <Text style={styles.switchLabel}>Comportamento normal?</Text>
-            <Text style={styles.switchDica}>Animo, energia e interacao como de costume</Text>
-          </View>
-          <Switch
-            value={comportamentoNormal}
-            onValueChange={setComportamentoNormal}
-            trackColor={{ true: cores.verde }}
-          />
-        </View>
-      </Card>
-
-      <Campo label="Observacoes" value={obs} onChange={setObs} placeholder="Opcional" multiline />
+      <CamposPasseio valores={valores} alterar={alterar} />
 
       <Card style={styles.preview}>
         <Text style={styles.previewLabel}>Resumo</Text>
-        <Text style={styles.previewTxt}>
-          {minutos} min · Agua: {simNao(agua)} · {resumoUrina}
-        </Text>
-        <Text style={styles.previewTxt}>
-          Fezes: {fezes ? 'normais' : 'alteradas'} · Comportamento:{' '}
-          {comportamentoNormal ? 'normal' : 'alterado'}
-        </Text>
+        {resumoPasseio(valores).map((linha) => (
+          <Text key={linha} style={styles.previewTxt}>
+            {linha}
+          </Text>
+        ))}
       </Card>
 
       <Botao texto="Salvar registro" onPress={() => void salvar()} carregando={criar.isPending} />
@@ -160,19 +76,6 @@ export default function PasseioScreen() {
 
 const criarEstilos = (cores: Cores) =>
   StyleSheet.create({
-    switchCard: { paddingVertical: 4 },
-    switchRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingVertical: 12,
-      paddingHorizontal: 4,
-      gap: theme.espaco.sm,
-    },
-    switchTextos: { flex: 1 },
-    divider: { height: 1, backgroundColor: cores.borda },
-    switchLabel: { fontSize: 16, fontWeight: '600', color: cores.texto },
-    switchDica: { fontSize: 12, color: cores.textoClaro, marginTop: 2, lineHeight: 16 },
     preview: { backgroundColor: cores.verdeClaro, marginTop: theme.espaco.sm },
     previewLabel: { fontSize: 12, fontWeight: '700', color: cores.verdeEscuro },
     previewTxt: { fontSize: 14, color: cores.texto, marginTop: 6, lineHeight: 20 },

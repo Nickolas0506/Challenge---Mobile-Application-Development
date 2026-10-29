@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Alert, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { Botao } from '../components/Botao';
 import { CabecalhoTela } from '../components/CabecalhoTela';
 import { Card } from '../components/Card';
@@ -10,7 +10,7 @@ import { EstadoCarregando } from '../components/EstadoCarregando';
 import { EstadoErro } from '../components/EstadoErro';
 import { theme } from '../constants/theme';
 import { alertaParaInput, useAlertas, useAtualizarAlerta, useRemoverAlerta } from '../hooks/useAlertas';
-import { confirmar } from '../lib/confirmar';
+import { avisar, confirmar } from '../lib/confirmar';
 import { useCriarEventoIot } from '../hooks/useEventosIot';
 import type { AppStackParamList, TabParamList } from '../navigation/types';
 import type { Alerta } from '../types/models';
@@ -60,7 +60,7 @@ export default function AlertasScreen({ navigation }: Props) {
         mensagem: 'Uso registrado na caixa de areia (sensor PIR)',
       });
     } catch (e) {
-      Alert.alert('Erro', e instanceof Error ? e.message : 'Falha ao registrar evento.');
+      avisar('Erro', e instanceof Error ? e.message : 'Falha ao registrar evento.');
     }
   }
 

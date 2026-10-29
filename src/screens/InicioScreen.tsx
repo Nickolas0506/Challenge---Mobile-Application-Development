@@ -13,70 +13,32 @@ import { TelaLayout } from '../components/TelaLayout';
 import { TituloSecao } from '../components/TituloSecao';
 import { theme } from '../constants/theme';
 import { useAuth } from '../contexts/AuthContext';
-import { useCheckins } from '../hooks/useCheckins';
-import { useEventosIot } from '../hooks/useEventosIot';
-import { usePets } from '../hooks/usePets';
 import type { AppStackParamList, TabParamList } from '../navigation/types';
 import type { Cores } from '../constants/cores';
 import { useTema } from '../contexts/TemaContext';
 import { useEstilos } from '../hooks/useEstilos';
+import { useResumoDia } from '../hooks/useResumoDia';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'Inicio'>,
   NativeStackScreenProps<AppStackParamList>
 >;
 
-function mesmoDia(iso: string) {
-  const hoje = new Date().toISOString().slice(0, 10);
-  return iso.slice(0, 10) === hoje;
-}
-
-function calcularStreak(datas: string[]) {
-  const dias = new Set(datas.map((d) => d.slice(0, 10)));
-  let streak = 0;
-  const cursor = new Date();
-  while (dias.has(cursor.toISOString().slice(0, 10))) {
-    streak += 1;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-  if (streak === 0) {
-    cursor.setDate(cursor.getDate() - 1);
-    while (dias.has(cursor.toISOString().slice(0, 10))) {
-      streak += 1;
-      cursor.setDate(cursor.getDate() - 1);
-    }
-  }
-  return streak;
-}
-
 export default function InicioScreen({ navigation }: Props) {
   const { cores } = useTema();
   const styles = useEstilos(criarEstilos);
   const insets = useSafeAreaInsets();
   const { usuario, sair } = useAuth();
-  const petsQuery = usePets();
-  const checkinsQuery = useCheckins();
-  const iotQuery = useEventosIot();
-
-  const carregando = petsQuery.isLoading || checkinsQuery.isLoading || iotQuery.isLoading;
-  const erro = petsQuery.isError || checkinsQuery.isError || iotQuery.isError;
-  const pet = petsQuery.data?.[0];
-  const checkins = checkinsQuery.data ?? [];
-  const fezHoje = checkins.some((c) => mesmoDia(c.data));
-  const streak = calcularStreak(checkins.map((c) => c.data));
-  const ultimoIot = iotQuery.data?.[0];
+  const { pet, fezHoje, sequencia, ultimoEventoIot, carregando, erro, atualizando, atualizar } =
+    useResumoDia();
   const primeiroNome = usuario?.nome?.split(/\s+/)[0] || 'tutor';
-
-  async function atualizar() {
-    await Promise.all([petsQuery.refetch(), checkinsQuery.refetch(), iotQuery.refetch()]);
-  }
 
   return (
     <TelaLayout
       semPadding
       refreshControl={
         <RefreshControl
-          refreshing={petsQuery.isRefetching || checkinsQuery.isRefetching}
+          refreshing={atualizando}
           onRefresh={() => void atualizar()}
         />
       }
@@ -157,9 +119,9 @@ export default function InicioScreen({ navigation }: Props) {
         <ResumoDiaCard
           icone="flame"
           titulo="Sequencia de check-ins"
-          valor={`${streak} ${streak === 1 ? 'dia' : 'dias'}`}
+          valor={`${sequencia} ${sequencia === 1 ? 'dia' : 'dias'}`}
           descricao={
-            streak > 0
+            sequencia > 0
               ? 'Dias seguidos registrando como seu pet esta'
               : 'Faca o primeiro check-in para comecar a sequencia'
           }
@@ -210,7 +172,7 @@ export default function InicioScreen({ navigation }: Props) {
           onPress={() => navigation.navigate('Historico')}
         />
 
-        {ultimoIot ? (
+        {ultimoEventoIot ? (
           <>
             <TituloSecao titulo="Sensor urinario" dica="Caixa de areia / tapete" />
             <Card>
@@ -218,8 +180,8 @@ export default function InicioScreen({ navigation }: Props) {
                 <Ionicons name="hardware-chip-outline" size={22} color={cores.verde} />
                 <Text style={styles.iotTitulo}>Ultimo evento PIR</Text>
               </View>
-              <Text style={styles.iotMsg}>{ultimoIot.mensagem}</Text>
-              <Text style={styles.iotData}>{new Date(ultimoIot.data).toLocaleString('pt-BR')}</Text>
+              <Text style={styles.iotMsg}>{ultimoEventoIot.mensagem}</Text>
+              <Text style={styles.iotData}>{new Date(ultimoEventoIot.data).toLocaleString('pt-BR')}</Text>
             </Card>
           </>
         ) : null}
