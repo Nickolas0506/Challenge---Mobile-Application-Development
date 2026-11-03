@@ -24,3 +24,7 @@ api/target/
 api/data/
 data/
 qr.html
+
+# gerado pelo expo prebuild
+/android
+/ios
