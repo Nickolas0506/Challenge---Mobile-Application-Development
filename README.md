@@ -11,8 +11,9 @@
 |:---|:---|
 | **Repositório** | https://github.com/Nickolas0506/Challenge---Mobile-Application-Development |
 | **Vídeo da 4ª Sprint** | _(link do YouTube — adicionar após a gravação)_ |
-| **Distribuição do APK** | `https://<API>/distribuicao/` — o professor recebe um **link de convite** individual |
-| **Painel de distribuição** | `https://<API>/distribuicao/painel` |
+| **API em produção** | https://solin-api-production.up.railway.app |
+| **Distribuição do APK** | versão 1.4.0 · commit `a36d203` · testador: `profantonio.neto@fiap.com.br` (link de convite individual) |
+| **Painel de distribuição** | https://solin-api-production.up.railway.app/distribuicao/painel |
 | Vídeo da 3ª Sprint | https://youtu.be/vLmsxIUhOj8 |
 
 > **Publicação:** com autorização do professor, o Firebase App Distribution foi substituído por uma
