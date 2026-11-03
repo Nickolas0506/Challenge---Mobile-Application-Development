@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SOLIN — Painel de distribuicao</title>
+  <link rel="stylesheet" href="/distribuicao/estilo.css">
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <div class="marca">SOLIN</div>
+      <div class="sub">Painel de distribuicao do APK (substitui o Firebase App Distribution)</div>
+    </div>
+  </header>
+
+  <!-- entrada com o token de administrador -->
+  <section id="entrada" class="card">
+    <label for="token">Token de administrador (SOLIN_ADMIN_TOKEN)</label>
+    <input id="token" type="password" autocomplete="current-password">
+    <p id="erroEntrada" class="erro oculto"></p>
+    <button id="entrar" style="margin-top:12px">Entrar</button>
+  </section>
+
+  <section id="painel" class="oculto">
+    <div class="linha">
+      <span class="muted">Conectado como administrador</span>
+      <button class="secundario" id="sair">Sair</button>
+    </div>
+
+    <h2>1. Publicar nova versao</h2>
+    <form id="formVersao" class="card">
+      <label for="apk">Arquivo APK</label>
+      <input id="apk" type="file" accept=".apk" required>
+      <div class="grade">
+        <div>
+          <label for="versao">Versao</label>
+          <input id="versao" placeholder="1.0.0" required>
+        </div>
+        <div>
+          <label for="commit">Hash do commit</label>
+          <input id="commit" class="mono" placeholder="d1ddedf..." required>
+        </div>
+      </div>
+      <label for="notas">Notas da versao (opcional)</label>
+      <textarea id="notas" rows="3" placeholder="O que mudou nesta versao"></textarea>
+      <progress id="progresso" class="oculto" max="100" value="0"></progress>
+      <p id="msgVersao" class="oculto"></p>
+      <button type="submit" style="margin-top:12px">Publicar APK</button>
+    </form>
+
+    <h2>2. Testadores</h2>
+    <form id="formTestador" class="card">
+      <div class="grade">
+        <div>
+          <label for="email">E-mail (ex.: e-mail institucional do professor)</label>
+          <input id="email" type="email" required>
+        </div>
+        <div>
+          <label for="nome">Nome (opcional)</label>
+          <input id="nome">
+        </div>
+      </div>
+      <p id="msgTestador" class="oculto"></p>
+      <button type="submit" style="margin-top:12px">Adicionar testador</button>
+    </form>
+    <div id="testadores"></div>
+
+    <h2>Versoes publicadas</h2>
+    <div id="versoes"></div>
+
+    <h2>Downloads</h2>
+    <div id="downloads"></div>
+  </section>
+</main>
+<script>
+  const $ = (id) => document.getElementById(id);
+  let token = '';
+  try { token = sessionStorage.getItem('solinAdmin') || ''; } catch (e) {}
+
+  function texto(valor) {
+    const span = document.createElement('span');
+    span.textContent = valor ?? '';
+    return span.innerHTML;
+  }
+  const data = (iso) => (iso ? new Date(iso).toLocaleString('pt-BR') : '-');
+  const tamanho = (b) => (b / 1024 / 1024).toFixed(1) + ' MB';
+
+  function mensagem(el, txt, ok) {
+    el.textContent = txt;
+    el.className = ok ? 'ok' : 'erro';
+  }
+
+  async function api(caminho, opcoes = {}) {
+    const res = await fetch('/distribuicao/admin' + caminho, {
+      ...opcoes,
+      headers: { 'X-Admin-Token': token, ...(opcoes.headers || {}) },
+    });
+    if (res.status === 204) return null;
+    const corpo = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(corpo.mensagem || 'Falha (' + res.status + ')');
+    return corpo;
+  }
+
+  async function carregar() {
+    const [testadores, versoes, downloads] = await Promise.all([
+      api('/testadores'), api('/versoes'), api('/downloads'),
+    ]);
+
+    $('testadores').innerHTML = testadores.length ? testadores.map((t) => {
+      const assunto = encodeURIComponent('Convite para testar o app SOLIN');
+      const corpo = encodeURIComponent(
+        'Ola' + (t.nome ? ' ' + t.nome : '') + ',\n\nVoce foi convidado para testar o app SOLIN (Android).\n' +
+        'Abra o link abaixo no celular e baixe o APK:\n\n' + t.linkConvite + '\n\nEquipe SOLIN');
+      return `
+        <div class="card">
+          <div class="linha">
+            <div>
+              <strong>${texto(t.email)}</strong> ${t.nome ? '<span class="muted">· ' + texto(t.nome) + '</span>' : ''}
+              <div class="muted">${t.downloads} download(s) · ultimo: ${data(t.ultimoDownload)}</div>
+            </div>
+            <button class="perigo" data-remover-testador="${t.id}">Remover</button>
+          </div>
+          <div class="link-convite mono muted" style="margin:8px 0">${texto(t.linkConvite)}</div>
+          <button class="secundario" data-copiar="${texto(t.linkConvite)}">Copiar link</button>
+          <a class="botao secundario" href="mailto:${encodeURIComponent(t.email)}?subject=${assunto}&body=${corpo}">Enviar por e-mail</a>
+        </div>`;
+    }).join('') : '<div class="card muted">Nenhum testador ainda.</div>';
+
+    $('versoes').innerHTML = versoes.length ? versoes.map((v, i) => `
+      <div class="card linha">
+        <div>
+          <strong>Versao ${texto(v.versao)}</strong> ${i === 0 ? '<span class="selo">mais recente</span>' : ''}
+          <div class="muted">Commit <span class="hash">${texto(v.commit.slice(0, 7))}</span> · ${tamanho(v.tamanho)} · ${data(v.publicadaEm)}</div>
+        </div>
+        <button class="perigo" data-remover-versao="${v.id}">Remover</button>
+      </div>`).join('') : '<div class="card muted">Nenhuma versao publicada ainda.</div>';
+
+    $('downloads').innerHTML = downloads.length ? '<div class="card">' + downloads.map((d) => `
+      <div class="linha" style="padding:4px 0">
+        <span>${texto(d.email)}</span>
+        <span class="muted">v${texto(d.versao)} · <span class="hash">${texto(d.commit.slice(0, 7))}</span> · ${data(d.data)}</span>
+      </div>`).join('') + '</div>' : '<div class="card muted">Ninguem baixou ainda.</div>';
+  }
+
+  async function entrar() {
+    try {
+      await carregar();
+      try { sessionStorage.setItem('solinAdmin', token); } catch (e) {}
+      $('entrada').classList.add('oculto');
+      $('painel').classList.remove('oculto');
+    } catch (e) {
+      mensagem($('erroEntrada'), e.message, false);
+    }
+  }
+
+  $('entrar').onclick = () => { token = $('token').value.trim(); entrar(); };
+  $('token').onkeydown = (e) => { if (e.key === 'Enter') $('entrar').click(); };
+  $('sair').onclick = () => {
+    try { sessionStorage.removeItem('solinAdmin'); } catch (e) {}
+    location.reload();
+  };
+
+  $('formTestador').onsubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const t = await api('/testadores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: $('email').value, nome: $('nome').value }),
+      });
+      mensagem($('msgTestador'), 'Testador ' + t.email + ' adicionado. Envie o link de convite.', true);
+      e.target.reset();
+      await carregar();
+    } catch (erro) {
+      mensagem($('msgTestador'), erro.message, false);
+    }
+  };
+
+  // upload com XHR para mostrar o progresso (o APK tem dezenas de MB)
+  $('formVersao').onsubmit = (e) => {
+    e.preventDefault();
+    const dados = new FormData();
+    dados.append('apk', $('apk').files[0]);
+    dados.append('versao', $('versao').value);
+    dados.append('commit', $('commit').value);
+    dados.append('notas', $('notas').value);
+
+    const botao = e.target.querySelector('button');
+    const barra = $('progresso');
+    botao.disabled = true;
+    barra.classList.remove('oculto');
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/distribuicao/admin/versoes');
+    xhr.setRequestHeader('X-Admin-Token', token);
+    xhr.upload.onprogress = (ev) => { if (ev.lengthComputable) barra.value = (ev.loaded / ev.total) * 100; };
+    xhr.onload = async () => {
+      botao.disabled = false;
+      barra.classList.add('oculto');
+      let corpo = {};
+      try { corpo = JSON.parse(xhr.responseText); } catch (err) {}
+      if (xhr.status === 201) {
+        mensagem($('msgVersao'), 'Versao ' + corpo.versao + ' publicada.', true);
+        e.target.reset();
+        await carregar();
+      } else {
+        mensagem($('msgVersao'), corpo.mensagem || 'Falha ao publicar (' + xhr.status + ')', false);
+      }
+    };
+    xhr.onerror = () => {
+      botao.disabled = false;
+      barra.classList.add('oculto');
+      mensagem($('msgVersao'), 'Falha de rede durante o envio.', false);
+    };
+    xhr.send(dados);
+  };
+
+  document.addEventListener('click', async (e) => {
+    const alvo = e.target;
+    try {
+      if (alvo.dataset.copiar) {
+        await navigator.clipboard.writeText(alvo.dataset.copiar);
+        alvo.textContent = 'Copiado!';
+      } else if (alvo.dataset.removerTestador && confirm('Remover este testador? O link dele deixa de funcionar.')) {
+        await api('/testadores/' + alvo.dataset.removerTestador, { method: 'DELETE' });
+        await carregar();
+      } else if (alvo.dataset.removerVersao && confirm('Remover esta versao?')) {
+        await api('/versoes/' + alvo.dataset.removerVersao, { method: 'DELETE' });
+        await carregar();
+      }
+    } catch (erro) {
+      alert(erro.message);
+    }
+  });
+
+  if (token) entrar();
+</script>
+</body>
+</html>

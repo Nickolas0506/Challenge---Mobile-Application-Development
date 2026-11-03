@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.Map;
 
@@ -22,5 +23,10 @@ public class ApiExceptionHandler {
                 .map(campo -> campo.getDefaultMessage())
                 .orElse("Dados invalidos.");
         return ResponseEntity.badRequest().body(Map.of("mensagem", mensagem));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, String>> arquivoGrande(MaxUploadSizeExceededException erro) {
+        return ResponseEntity.status(413).body(Map.of("mensagem", "Arquivo maior que o limite de 150 MB."));
     }
 }
