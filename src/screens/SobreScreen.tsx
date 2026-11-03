@@ -12,6 +12,7 @@ import { EQUIPE } from '../constants/equipe';
 import { theme } from '../constants/theme';
 import { useTema } from '../contexts/TemaContext';
 import { useEstilos } from '../hooks/useEstilos';
+import { useVersaoDistribuida } from '../hooks/useVersaoDistribuida';
 
 function formatarData(iso?: string) {
   return iso ? new Date(iso).toLocaleString('pt-BR') : '-';
@@ -20,6 +21,7 @@ function formatarData(iso?: string) {
 export default function SobreScreen() {
   const { cores } = useTema();
   const styles = useEstilos(criarEstilos);
+  const distribuicao = useVersaoDistribuida();
   const linkCommit = versaoApp.repositorio ? `${versaoApp.repositorio}/commit/${versaoApp.commit}` : null;
 
   return (
@@ -52,6 +54,30 @@ export default function SobreScreen() {
             <Text style={styles.linkTxt}>Ver este commit no GitHub</Text>
           </Pressable>
         ) : null}
+      </Card>
+
+      <TituloSecao titulo="Distribuicao para testadores" />
+      <Card>
+        {distribuicao.isLoading ? (
+          <Text style={styles.texto}>Consultando a ultima versao publicada...</Text>
+        ) : distribuicao.isError ? (
+          <Text style={styles.aviso}>Nao foi possivel consultar a distribuicao na API.</Text>
+        ) : !distribuicao.ultima ? (
+          <Text style={styles.texto}>Nenhum APK publicado na distribuicao ainda.</Text>
+        ) : (
+          <>
+            <Linha
+              rotulo="Ultima versao publicada"
+              valor={`${distribuicao.ultima.versao} · ${distribuicao.ultima.commit.slice(0, 7)}`}
+            />
+            <Linha rotulo="Publicada em" valor={formatarData(distribuicao.ultima.publicadaEm)} />
+            <Text style={distribuicao.atualizado ? styles.ok : styles.aviso}>
+              {distribuicao.atualizado
+                ? 'Voce esta usando a versao mais recente.'
+                : 'Ha uma versao diferente publicada. Baixe pelo link de convite.'}
+            </Text>
+          </>
+        )}
       </Card>
 
       <TituloSecao titulo="O que o app faz" />
@@ -103,6 +129,7 @@ const criarEstilos = (cores: Cores) =>
     },
     hashCompleto: { fontSize: 11, color: cores.textoClaro, fontFamily: 'monospace', marginBottom: theme.espaco.sm },
     aviso: { fontSize: 12, color: cores.vermelho, fontWeight: '700', marginBottom: theme.espaco.sm },
+    ok: { fontSize: 12, color: cores.verde, fontWeight: '700', marginTop: 4 },
     link: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: theme.espaco.sm, paddingVertical: 6 },
     linkTxt: { color: cores.verde, fontWeight: '700' },
     texto: { fontSize: 14, color: cores.texto, lineHeight: 21 },

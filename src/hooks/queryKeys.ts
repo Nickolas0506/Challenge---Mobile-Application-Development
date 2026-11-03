@@ -8,4 +8,5 @@ export const queryKeys = {
   alertas: (userId: string) => ['alertas', userId] as const,
   alerta: (id: string) => ['alerta', id] as const,
   eventosIot: (userId: string) => ['eventosIot', userId] as const,
+  versaoDistribuida: ['versaoDistribuida'] as const,
 };

@@ -67,3 +67,14 @@ export interface EventoIot {
 }
 
 export type EventoIotInput = Omit<EventoIot, 'id'>;
+
+/** APK publicado na distribuicao da API (/distribuicao/ultima). */
+export interface VersaoDistribuida {
+  id: number;
+  versao: string;
+  commit: string;
+  notas?: string;
+  tamanho: number;
+  publicadaEm: string;
+  arquivo: string;
+}
