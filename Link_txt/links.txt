@@ -1,0 +1,14 @@
+SOLIN - Sprint 4 - Mobile Application Development
+
+Repositorio GitHub:
+https://github.com/Nickolas0506/Challenge---Mobile-Application-Development
+
+Video da Sprint 4 (YouTube):
+https://youtu.be/s06q2eAKtp4
+
+Integrantes:
+Nickolas Davi      - RM564105
+Samara Vilela      - RM566133
+Natalia Cristina   - RM564099
+Otavio Ferreira    - RM565960
+Rodrigo Carvalho   - RM565162
