@@ -5,6 +5,7 @@ https://github.com/Nickolas0506/Challenge---Mobile-Application-Development
 
 Video da Sprint 4 (YouTube):
 https://youtu.be/s06q2eAKtp4
+Obs.: no video, a voz ficou com um pequeno atraso (delay) em relacao a imagem.
 
 Integrantes:
 Nickolas Davi      - RM564105
