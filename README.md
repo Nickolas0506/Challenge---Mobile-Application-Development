@@ -10,7 +10,7 @@
 | | Link |
 |:---|:---|
 | **Repositório** | https://github.com/Nickolas0506/Challenge---Mobile-Application-Development |
-| **Vídeo da 4ª Sprint** | _(link do YouTube — adicionar após a gravação)_ |
+| **Vídeo da 4ª Sprint** | https://youtu.be/s06q2eAKtp4 |
 | **API em produção** | https://solin-api-production.up.railway.app |
 | **Distribuição do APK** | versão 1.4.0 · commit `a36d203` · testador: `pf1669@fiap.com.br` (link de convite individual) |
 | **Painel de distribuição** | https://solin-api-production.up.railway.app/distribuicao/painel |
